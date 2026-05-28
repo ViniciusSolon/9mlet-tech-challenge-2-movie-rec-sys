@@ -1,0 +1,7 @@
+# Hyperparameters and paths (expanded in Bloco 4+)
+data_dir: data
+raw_dir: data/raw
+processed_dir: data/processed
+random_seed: 42
+implicit_rating_threshold: 4.0
+top_k: 10

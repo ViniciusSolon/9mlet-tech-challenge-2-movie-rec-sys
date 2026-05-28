@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.env
+
+# ML / data (never commit raw MovieLens or large artifacts)
+data/raw/**/*.csv
+data/raw/**/*.txt
+data/raw/external_metadata/*
+!data/raw/external_metadata/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+!data/processed/movie_metadata.parquet
+data/logs/*
+!data/logs/.gitkeep
+models/*
+!models/.gitkeep
+mlruns/
+.dvc/cache/
+.dvc/tmp/
+
+# Tools
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
+
+# Docs local only (optional team choice — PDF stays if committed)
+# docs/*.pdf

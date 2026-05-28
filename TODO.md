@@ -4,7 +4,7 @@
 >
 > Equipe: 4 participantes — trocar **A / B / C / D** pelos nomes reais.
 >
-> **Começar por:** [Pré-etapa — Coleta de metadados IMDb/TMDB](#pré-etapa--coleta-de-metadados-imdbtmdb-antes-da-etapa-1) (antes do Bloco 0 e da Etapa 1 do PDF).
+> **Começar por:** [Bloco 0 — Fundação e Docker inicial](#bloco-0--fundação-e-docker-inicial), depois [Etapa 1 — Clean Code](#bloco-1--etapa-1-clean-code-disciplina-01). A [coleta TMDB](#etapa-de-scraping--coleta-de-metadados-imdbtmdb-após-etapa-1--clean-code) fica **após** a Etapa 1 (estrutura `src/` pronta).
 
 ---
 
@@ -87,15 +87,17 @@ Hoje vocês têm principalmente **sinal colaborativo** (ratings) e **gêneros** 
 
 | Momento | O quê |
 |---------|--------|
-| **Pré-etapa (antes da Etapa 1)** | Coleta única via API (TMDB/OMDb) usando `links.csv` → cache local |
-| **Pipeline DVC (Etapa 3+)** | Consome o parquet já coletado; **não** refaz download a cada `dvc repro` |
+| **Após Etapa 1 (Clean Code)** | Coleta única via API (TMDB/OMDb) em `src/data/` + `scripts/`, usando `links.csv` → cache em `data/raw/` |
+| **Pipeline DVC (Etapa 3 / Bloco 4)** | Consome o parquet já coletado; **não** refaz download a cada `dvc repro` |
 
 ```
-[Pré-etapa] coleta metadados → data/raw/external_metadata/
+[Bloco 0–1] estrutura src/, data/, scripts/, lint
+
+[Etapa de scraping] coleta metadados → data/raw/external_metadata/ → movie_metadata.parquet
 
 [Pipeline DVC]
 preprocess → feature_eng → train → evaluate
-              ↑ usa movie_metadata.parquet da pré-etapa
+              ↑ usa movie_metadata.parquet da etapa de scraping
 ```
 
 ### Experimento MLflow (ablation)
@@ -105,7 +107,7 @@ Registrar ≥ 4 runs comparando:
 1. Só colaborativo (embedding user + item)
 2. + tags MovieLens
 3. + BERTopic (tags)
-4. + metadados TMDB/IMDb (coletados na **Pré-etapa**)
+4. + metadados TMDB/IMDb (coletados na **Etapa de scraping**)
 
 Isso fortalece o vídeo STAR e o Model Card (trade-off custo vs ganho de NDCG@K).
 
@@ -115,11 +117,11 @@ Isso fortalece o vídeo STAR e o Model Card (trade-off custo vs ganho de NDCG@K)
 
 ### Etapa 1 — Clean Code e estrutura (15% da nota)
 
-- [ ] Estrutura: `src/`, `tests/`, `data/`, `models/`, `configs/`
-- [ ] SOLID, naming, funções ≤ 20 linhas, type hints, docstrings Google
-- [ ] ≥ 1 design pattern: **Factory** (modelos) e/ou **Strategy** (preprocessadores)
-- [ ] `ruff` sem erros + pre-commit
-- [ ] **Entregável:** repositório base com lint passando
+- [x] Estrutura: `src/`, `tests/`, `data/`, `models/`, `configs/`
+- [x] SOLID, naming, funções ≤ 20 linhas, type hints, docstrings Google
+- [x] ≥ 1 design pattern: **Factory** (modelos) e/ou **Strategy** (preprocessadores)
+- [x] `ruff` sem erros + pre-commit
+- [x] **Entregável:** repositório base com lint passando
 
 ### Etapa 2 — Ambiente e dependências (15%)
 
@@ -135,7 +137,7 @@ Isso fortalece o vídeo STAR e o Model Card (trade-off custo vs ganho de NDCG@K)
 - [ ] Dockerfile **multi-stage** (builder + runtime)
 - [ ] `docker-compose.yml`: treino + MLflow server
 - [ ] DVC: dataset versionado, remote (local ou S3)
-- [ ] Pipeline DVC (≥ 3 stages): `preprocess → feature_eng → train → evaluate` (metadados já na pré-etapa)
+- [ ] Pipeline DVC (≥ 3 stages): `preprocess → feature_eng → train → evaluate` (metadados já na etapa de scraping)
 - [ ] MLflow: params, métricas, artefatos; ≥ 3 runs
 - [ ] **Entregável:** `dvc repro` + Docker funcional
 
@@ -186,10 +188,10 @@ Isso fortalece o vídeo STAR e o Model Card (trade-off custo vs ganho de NDCG@K)
 |--------------|----------------|-------------------|
 | **A** | Docker inicial + DVC + infra reprodutível | Alto em DevOps, médio em ML |
 | **B** | Clean code, testes, design patterns | Alto em engenharia de software |
-| **C** | Pré-etapa (coleta metadados) + dados MovieLens + BERTopic | Alto em dados/NLP |
+| **C** | Etapa de scraping (coleta metadados, após Etapa 1) + dados MovieLens + BERTopic | Alto em dados/NLP |
 | **D** | PyTorch, baselines, MLflow Registry, entrega | Alto em ML |
 
-**Sorteio:** tarefas distribuídas por bloco; a **Pré-etapa** roda antes de qualquer etapa do PDF.
+**Sorteio:** tarefas distribuídas por bloco; a **Etapa de scraping** roda após os Blocos 0 e 1 (estrutura e clean code prontos).
 
 ---
 
@@ -197,9 +199,9 @@ Isso fortalece o vídeo STAR e o Model Card (trade-off custo vs ganho de NDCG@K)
 
 ```mermaid
 flowchart LR
-    PRE[Pré-etapa Coleta IMDb/TMDB] --> B0[Bloco 0 Docker]
-    B0 --> B1[Bloco 1 Etapa 1 Clean Code]
-    B1 --> B2[Bloco 2 Etapa 2 Poetry]
+    B0[Bloco 0 Docker + pastas] --> B1[Bloco 1 Etapa 1 Clean Code]
+    B1 --> PRE[Etapa de scraping Coleta TMDB]
+    PRE --> B2[Bloco 2 Etapa 2 Poetry]
     B2 --> B3[Bloco 3 Dados MovieLens]
     B3 --> B4[Bloco 4 Etapa 3 DVC+MLflow]
     B4 --> B5[Bloco 5 Modelos]
@@ -208,9 +210,9 @@ flowchart LR
 
 | Fase | Relação com o PDF |
 |------|-------------------|
-| **Pré-etapa** | Antes da Etapa 1 — coleta de metadados externos (não avaliada isoladamente, alimenta o modelo) |
-| Blocos 0–1 | Etapa 1 — Clean Code |
-| Bloco 2 | Etapa 2 — Dependências |
+| Blocos 0–1 | Etapa 1 — Clean Code + fundação do repo |
+| **Etapa de scraping** | Após Etapa 1 — coleta de metadados externos (não avaliada isoladamente, alimenta o modelo) |
+| Bloco 2 | Etapa 2 — Dependências (ideal concluir 2.1–2.4 antes ou em paralelo à etapa de scraping) |
 | Blocos 3–4 | Etapas 2–3 — Dados + Docker + DVC + MLflow |
 | Blocos 5–6 | Etapa 4 — Modelo + entrega |
 
@@ -218,64 +220,73 @@ flowchart LR
 
 ## Lista completa de TODO (por blocos)
 
-### Pré-etapa — Coleta de metadados IMDb/TMDB (antes da Etapa 1)
-
-> **Executar primeiro**, antes do Bloco 0 e da Etapa 1 do PDF.  
-> Objetivo: ter `movie_metadata.parquet` pronto para o pipeline, sem depender de API em cada treino.  
-> **Importante:** usar **API** (TMDB/OMDb), não scraping de HTML do IMDb (instável e contra ToS).
-
-| ID | Tarefa | Responsável | Status |
-|----|--------|-------------|--------|
-| P.1 | Baixar MovieLens 20M (mínimo: `movies.csv`, `links.csv`, `ratings.csv`) | **C** | [ ] |
-| P.2 | Join `movies.csv` + `links.csv`; mapear cobertura e IDs ausentes/inválidos | **C** | [ ] |
-| P.3 | Obter API keys (TMDB obrigatório; OMDb opcional como fallback via `imdbId`) | **A** | [ ] |
-| P.4 | Script `scripts/fetch_external_metadata.py`: coleta por `tmdbId` (+ fallback `imdbId`) | **C** | [ ] |
-| P.5 | Rate limit, retries, backoff e log de falhas (`data/logs/fetch_metadata.log`) | **D** | [ ] |
-| P.6 | Persistir cache bruto em `data/raw/external_metadata/` (JSON ou parquet por filme) | **A** | [ ] |
-| P.7 | Gerar `data/processed/movie_metadata.parquet` consolidado (overview, genres, keywords, ano…) | **C** | [ ] |
-| P.8 | Relatório de cobertura: % filmes com sinopse, gêneros, keywords | **D** | [ ] |
-| P.9 | Validação manual de amostra (10 filmes) conferindo título/sinopse vs IMDb/TMDB | **B** | [ ] |
-| P.10 | Documentar passo a passo em `docs/PRE_ETAPA_METADADOS.md` | **B** | [ ] |
-
-**Entregável da pré-etapa:** `movie_metadata.parquet` + cache em `data/raw/` + relatório de cobertura.
-
-**Checkpoint:** só avançar para o Bloco 0 quando P.7 estiver concluído.
-
----
-
 ### Bloco 0 — Fundação e Docker inicial
 
 > Objetivo: versionar e rodar o mesmo ambiente desde o dia 1.
 
 | ID | Tarefa | Responsável | Status |
 |----|--------|-------------|--------|
-| 0.1 | Criar repositório GitHub, branch `main`, README esqueleto, licença | **B** | [ ] |
-| 0.2 | Definir convenção de commits semânticos + template de PR/issue | **B** | [ ] |
-| 0.3 | Estrutura inicial de pastas (`src/`, `tests/`, `data/`, `models/`, `configs/`, `scripts/`) | **B** | [ ] |
-| 0.4 | `.gitignore`, `.dockerignore`, `.env.example` | **A** | [ ] |
-| 0.5 | Dockerfile multi-stage (builder + runtime) — versão mínima “hello train” | **A** | [ ] |
-| 0.6 | `docker-compose.yml` com serviços app + mlflow (volumes para `data/` e `mlruns/`) | **A** | [ ] |
-| 0.7 | Documentar no README: `docker compose up` e fluxo de desenvolvimento | **A** | [ ] |
-| 0.8 | Copiar `movie_metadata.parquet` da pré-etapa para estrutura do repo; referenciar no `.gitignore`/DVC | **A** | [ ] |
-| 0.9 | Incluir `TMDB_API_KEY` / `OMDB_API_KEY` no `.env.example` (coleta já feita na pré-etapa) | **A** | [ ] |
+| 0.1 | Criar repositório GitHub, branch `main`, README esqueleto, licença | **B** | [x] |
+| 0.2 | Definir convenção de commits semânticos + template de PR/issue | **B** | [x] |
+| 0.3 | Estrutura inicial de pastas (`src/`, `tests/`, `data/`, `models/`, `configs/`, `scripts/`) | **B** | [x] |
+| 0.4 | `.gitignore`, `.dockerignore`, `.env.example` | **A** | [x] |
+| 0.5 | Dockerfile multi-stage (builder + runtime) — versão mínima “hello train” | **A** | [x] |
+| 0.6 | `docker-compose.yml` com serviços app + mlflow (volumes para `data/` e `mlruns/`) | **A** | [x] |
+| 0.7 | Documentar no README: `docker compose up` e fluxo de desenvolvimento | **A** | [x] |
+| 0.8 | Pastas `data/raw/external_metadata/` e `data/processed/` + entradas no `.gitignore` | **A** | [x] |
+| 0.9 | Placeholders `TMDB_API_KEY` / `OMDB_API_KEY` no `.env.example` (usados na etapa de scraping) | **A** | [x] |
 
 ---
 
 ### Bloco 1 — Etapa 1: Clean Code (Disciplina 01)
 
-> **Pré-requisito:** Pré-etapa concluída (P.7).
+> **Pré-requisito:** Bloco 0 (pastas e `.env.example`).
 
 | ID | Tarefa | Responsável | Status |
 |----|--------|-------------|--------|
-| 1.1 | Módulos `src/` com responsabilidades claras (data, features, models, training, evaluation) | **B** | [ ] |
-| 1.2 | Type hints + docstrings Google em APIs públicas | **B** | [ ] |
-| 1.3 | **Factory** para instanciar modelos (PyTorch / baselines) | **D** | [ ] |
-| 1.4 | **Strategy** para preprocessadores (explícito vs implícito, filtros) | **C** | [ ] |
-| 1.5 | Configurar `ruff` + `pre-commit` (format, lint, trailing whitespace) | **B** | [ ] |
-| 1.6 | Testes unitários mínimos (Factory, Strategy, utils) com `pytest` | **B** | [ ] |
-| 1.7 | Garantir funções ≤ 20 linhas (refatorar onde estourar) | **B** | [ ] |
+| 1.1 | Módulos `src/` com responsabilidades claras (data, features, models, training, evaluation) | **B** | [x] |
+| 1.2 | Type hints + docstrings Google em APIs públicas | **B** | [x] |
+| 1.3 | **Factory** para instanciar modelos (PyTorch / baselines) | **D** | [x] |
+| 1.4 | **Strategy** para preprocessadores (explícito vs implícito, filtros) | **C** | [x] |
+| 1.5 | Configurar `ruff` + `pre-commit` (format, lint, trailing whitespace) | **B** | [x] |
+| 1.6 | Testes unitários mínimos (Factory, Strategy, utils) com `pytest` | **B** | [x] |
+| 1.7 | Garantir funções ≤ 20 linhas (refatorar onde estourar) | **B** | [x] |
 
 **Entregável:** lint verde + estrutura SOLID.
+
+---
+
+### Etapa de scraping — Coleta de metadados IMDb/TMDB (após Etapa 1 — Clean Code)
+
+> **Executar após os Blocos 0 e 1** — com `src/data/`, `scripts/` e convenções de código já definidas.  
+> Objetivo: ter `movie_metadata.parquet` pronto para o pipeline, sem depender de API em cada treino.  
+> **Importante:** usar **API** (TMDB/OMDb), não scraping de HTML do IMDb (instável e contra ToS).
+
+**Pré-requisitos**
+
+| Item | Por quê |
+|------|---------|
+| Bloco 0 (0.3–0.9) | Pastas `data/`, `.env.example`, `.gitignore` |
+| Bloco 1 (1.1–1.5) | Módulos `src/data/`, testes, ruff — client TMDB no padrão do projeto |
+| Bloco 2.1–2.4 *(recomendado)* | `httpx`/`requests` + Pydantic Settings para `TMDB_API_KEY` — ou `pip install httpx` temporário até o Bloco 2 fechar |
+
+| ID | Tarefa | Responsável | Status |
+|----|--------|-------------|--------|
+| P.1 | Baixar MovieLens 20M (mínimo: `movies.csv`, `links.csv`; `ratings.csv` opcional aqui) em `data/raw/` | **C** | [x] |
+| P.2 | Join `movies.csv` + `links.csv`; mapear cobertura e IDs ausentes/inválidos | **C** | [x] |
+| P.3 | Obter API keys (TMDB obrigatório; OMDb opcional como fallback via `imdbId`) | **A** | [x] |
+| P.4 | Cliente em `src/data/external/tmdb_client.py` + CLI `scripts/fetch_external_metadata.py` | **C** | [x] |
+| P.5 | Rate limit, retries, backoff e log de falhas (`data/logs/fetch_metadata.log`) | **D** | [x] |
+| P.6 | Persistir cache bruto em `data/raw/external_metadata/` (JSON ou parquet por filme) | **A** | [x] |
+| P.7 | Gerar `data/processed/movie_metadata.parquet` consolidado (overview, genres, keywords, ano…) | **C** | [x] |
+| P.8 | Relatório de cobertura: % filmes com sinopse, gêneros, keywords | **D** | [x] |
+| P.9 | Validação manual de amostra (10 filmes) conferindo título/sinopse vs IMDb/TMDB | **B** | [ ] |
+| P.10 | Documentar passo a passo em `docs/PRE_ETAPA_METADADOS.md` | **B** | [x] |
+| P.11 | Testes unitários do client TMDB com API mockada (`tests/unit/test_tmdb_client.py`) | **B** | [x] |
+
+**Entregável da etapa de scraping:** `movie_metadata.parquet` + cache em `data/raw/` + relatório de cobertura.
+
+**Checkpoint:** só avançar para o Bloco 3 (EDA completa) quando P.7 estiver concluído. O Bloco 2 pode rodar **em paralelo** à etapa de scraping (deps e seeds).
 
 ---
 
@@ -284,7 +295,7 @@ flowchart LR
 | ID | Tarefa | Responsável | Status |
 |----|--------|-------------|--------|
 | 2.1 | `pyproject.toml` com Poetry/uv: deps prod e dev separadas | **A** | [ ] |
-| 2.2 | Incluir `torch`, `scikit-learn`, `mlflow`, `dvc`, `pydantic-settings`, `bertopic` (feature) | **A** | [ ] |
+| 2.2 | Incluir `torch`, `scikit-learn`, `mlflow`, `dvc`, `pydantic-settings`, `httpx` (TMDB), `bertopic` (feature) | **A** | [ ] |
 | 2.3 | Gerar e commitar lock file | **A** | [ ] |
 | 2.4 | `configs/settings.py` com Pydantic Settings lendo `.env` | **A** | [ ] |
 | 2.5 | `scripts/validate_env.py` (versões, CUDA opcional, paths) | **A** | [ ] |
@@ -306,7 +317,7 @@ flowchart LR
 | 3.5 | Mapeamento “filme → produto” para narrativa e-commerce no README | **C** | [ ] |
 | 3.6 | Subconjunto para dev rápido (ex.: amostra) via config | **C** | [ ] |
 | 3.7 | Política de dados: não commitar CSV brutos; só via DVC | **A** | [ ] |
-| 3.8 | Validar join MovieLens ↔ `movie_metadata.parquet` da pré-etapa (chaves `movieId`) | **C** | [ ] |
+| 3.8 | Validar join MovieLens ↔ `movie_metadata.parquet` da etapa de scraping (chaves `movieId`) | **C** | [ ] |
 
 ---
 
@@ -315,7 +326,7 @@ flowchart LR
 | ID | Tarefa | Responsável | Status |
 |----|--------|-------------|--------|
 | 4.1 | `dvc init` + `.dvcignore` + remote (local `data/remote` ou S3) | **A** | [ ] |
-| 4.2 | Versionar no DVC: dataset processado + `movie_metadata.parquet` (artefato da pré-etapa) | **A** | [ ] |
+| 4.2 | Versionar no DVC: dataset processado + `movie_metadata.parquet` (artefato da etapa de scraping) | **A** | [ ] |
 | 4.3 | Stage `preprocess`: limpeza, filtros, split, artefatos parquet | **C** | [ ] |
 | 4.4 | Stage `feature_eng`: user-item + metadados pré-coletados + **BERTopic** | **C** | [ ] |
 | 4.5 | Stage `train`: chama treino PyTorch + log MLflow | **D** | [ ] |
@@ -327,7 +338,7 @@ flowchart LR
 
 ```
 preprocess → feature_eng → train → evaluate
-   (feature_eng consome movie_metadata.parquet da Pré-etapa)
+   (feature_eng consome movie_metadata.parquet da Etapa de scraping)
 ```
 
 **Entregável:** `dvc repro` + Docker funcional.
@@ -367,7 +378,7 @@ preprocess → feature_eng → train → evaluate
 | Participante | Tarefas (IDs) |
 |--------------|----------------|
 | **A** | P.3, P.6, 0.4–0.9, 2.1–2.5, 3.7, 4.1–4.2, 4.7–4.8, 6.7 (opc.) |
-| **B** | P.9–P.10, 0.1–0.3, 1.1–1.2, 1.5–1.7, 6.3–6.5 |
+| **B** | 0.1–0.3, 1.1–1.2, 1.5–1.7, P.9–P.11, 6.3–6.5 |
 | **C** | P.1–P.2, P.4, P.7, 1.4, 2.7, 3.1–3.6, 3.8, 4.3–4.4 |
 | **D** | P.5, P.8, 1.3, 2.6, 4.5–4.6, 5.1–5.7, 6.1–6.2 |
 
@@ -377,19 +388,18 @@ preprocess → feature_eng → train → evaluate
 
 | Semana | Fase | Marco |
 |--------|------|-------|
-| **0** | **Pré-etapa** | `movie_metadata.parquet` + relatório de cobertura |
-| 1 | 0 + 1 | Repo + Docker + lint |
-| 2 | 2 + 3 | `poetry install` + EDA MovieLens |
-| 3 | 4 | `dvc repro` parcial |
+| 1 | 0 + 1 | Repo + Docker + lint + estrutura `src/` |
+| 2 | **Etapa de scraping** + 2 (paralelo) | `movie_metadata.parquet` + `poetry install` |
+| 3 | 3 + 4 | EDA MovieLens + `dvc repro` parcial |
 | 4 | 5 + 6 | Modelo + Registry + vídeo |
 
 ---
 
 ## Decisões técnicas recomendadas
 
-1. **Pré-etapa primeiro:** coletar metadados IMDb/TMDB via API **antes** da Etapa 1; checkpoint em P.7.
+1. **Etapa de scraping após Etapa 1:** coletar metadados TMDB com `src/data/` e `scripts/` já no padrão do projeto; checkpoint em P.7.
 2. **Modelo principal:** embedding PyTorch híbrido (`user_id` + `movie_id` + features de conteúdo).
-3. **Metadados externos:** coleta na pré-etapa; versionar com DVC no Bloco 4 — não refazer fetch no treino.
+3. **Metadados externos:** coleta na etapa de scraping (pós Blocos 0–1); versionar com DVC no Bloco 4 — não refazer fetch no treino.
 4. **BERTopic:** em `feature_eng`, texto = `overview` + `keywords` + tags agregadas por `movieId`.
 5. **Métricas (≥ 4):** Precision@10, Recall@10, NDCG@10, Hit Rate@10 (+ RMSE se predizer rating).
 6. **Design patterns:** Factory (modelos) + Strategy (preprocessamento).
