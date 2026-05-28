@@ -1,0 +1,5 @@
+# SetAI Configuration
+# This folder contains CLI configuration including API keys
+# DO NOT commit this folder to version control
+
+config.json
