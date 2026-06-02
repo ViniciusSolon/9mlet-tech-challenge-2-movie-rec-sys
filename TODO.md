@@ -145,8 +145,9 @@ Isso fortalece o vídeo STAR e o Model Card (trade-off custo vs ganho de NDCG@K)
 
 - [ ] Treinar MLP/embedding PyTorch para recomendação (Vini)
 - [ ] Baselines Scikit-Learn com **≥ 4 métricas** (Edu)
-- [ ] Model Registry: Staging → Production (Vítor)
+- [ ] Model Registry: Staging → Production (Edu)
 - [ ] Model Card (performance, limitações, vieses) (Vítor)
+- [ ] Analisar e rafatorar os itens necessário (Vítor)
 - [ ] README final + vídeo STAR (Fernando)
 - [ ] *(Opcional)* Deploy em nuvem (Fernando)
 
