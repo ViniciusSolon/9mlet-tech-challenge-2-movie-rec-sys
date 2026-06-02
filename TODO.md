@@ -115,7 +115,7 @@ Isso fortalece o vídeo STAR e o Model Card (trade-off custo vs ganho de NDCG@K)
 
 ## O que fazer em cada etapa (4 etapas do PDF)
 
-### Etapa 1 — Clean Code e estrutura (15% da nota)
+### Etapa 1 — Clean Code e estrutura (15% da nota) - (Vítor)
 
 - [x] Estrutura: `src/`, `tests/`, `data/`, `models/`, `configs/`
 - [x] SOLID, naming, funções ≤ 20 linhas, type hints, docstrings Google
@@ -123,7 +123,7 @@ Isso fortalece o vídeo STAR e o Model Card (trade-off custo vs ganho de NDCG@K)
 - [x] `ruff` sem erros + pre-commit
 - [x] **Entregável:** repositório base com lint passando
 
-### Etapa 2 — Ambiente e dependências (15%)
+### Etapa 2 — Ambiente e dependências (15%) - (Vini)
 
 - [ ] `pyproject.toml` (Poetry/uv): prod (`pytorch`, `sklearn`, `mlflow`, `dvc`) e dev (`pytest`, `ruff`)
 - [ ] Lock file commitado
@@ -132,7 +132,7 @@ Isso fortalece o vídeo STAR e o Model Card (trade-off custo vs ganho de NDCG@K)
 - [ ] Instalação limpa em máquina nova
 - [ ] **Entregável:** `poetry install` (ou `uv sync`) do zero
 
-### Etapa 3 — Docker + DVC + MLflow (15% + 15% + 10%)
+### Etapa 3 — Docker + DVC + MLflow (15% + 15% + 10%) - (Fernando)
 
 - [ ] Dockerfile **multi-stage** (builder + runtime)
 - [ ] `docker-compose.yml`: treino + MLflow server
@@ -143,12 +143,12 @@ Isso fortalece o vídeo STAR e o Model Card (trade-off custo vs ganho de NDCG@K)
 
 ### Etapa 4 — Modelo, registry e entrega (15% rede neural + consolidação)
 
-- [ ] Treinar MLP/embedding PyTorch para recomendação
-- [ ] Baselines Scikit-Learn com **≥ 4 métricas**
-- [ ] Model Registry: Staging → Production
-- [ ] Model Card (performance, limitações, vieses)
-- [ ] README final + vídeo STAR
-- [ ] *(Opcional)* Deploy em nuvem
+- [ ] Treinar MLP/embedding PyTorch para recomendação (Vini)
+- [ ] Baselines Scikit-Learn com **≥ 4 métricas** (Edu)
+- [ ] Model Registry: Staging → Production (Vítor)
+- [ ] Model Card (performance, limitações, vieses) (Vítor)
+- [ ] README final + vídeo STAR (Fernando)
+- [ ] *(Opcional)* Deploy em nuvem (Fernando)
 
 ---
 
