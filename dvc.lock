@@ -1,0 +1,118 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python scripts/preprocess.py --strategy explicit
+    deps:
+    - path: data/raw/ratings.csv
+      hash: md5
+      md5: a8d38cd6d397f0c4eb6715168d3a2f2e
+      size: 123
+      isexec: true
+    - path: scripts/preprocess.py
+      hash: md5
+      md5: e529f25c2ee0dd4324273eb5ef1c2560
+      size: 1473
+      isexec: true
+    params:
+      params.yaml:
+        preprocess.strategy: explicit
+    outs:
+    - path: data/processed/preprocessed_ratings.parquet
+      hash: md5
+      md5: 05572d4666259f48ade77a34f1b66030
+      size: 3929
+  enrich_metadata:
+    cmd: python scripts/enrich_metadata.py
+    deps:
+    - path: data/processed/movie_metadata.parquet
+      hash: md5
+      md5: 05074061d79bfccc39b03eabf93c8a5a
+      size: 2715
+      isexec: true
+    - path: data/raw/links.csv
+      hash: md5
+      md5: a26edd06b3c5b8a688c2fb7ac02be4b5
+      size: 71
+      isexec: true
+    - path: data/raw/movies.csv
+      hash: md5
+      md5: 8bc447d0b12c087d57b6be8dbf7e2b7c
+      size: 117
+      isexec: true
+    - path: scripts/enrich_metadata.py
+      hash: md5
+      md5: b8649d4156c3d397e02d75beab1cc02a
+      size: 1405
+      isexec: true
+    outs:
+    - path: data/processed/enriched_metadata.parquet
+      hash: md5
+      md5: d3bc727c22b7473f701d147b4a130cfc
+      size: 4976
+  feature_eng:
+    cmd: python scripts/feature_engineering.py
+    deps:
+    - path: data/processed/enriched_metadata.parquet
+      hash: md5
+      md5: d3bc727c22b7473f701d147b4a130cfc
+      size: 4976
+    - path: data/processed/preprocessed_ratings.parquet
+      hash: md5
+      md5: 05572d4666259f48ade77a34f1b66030
+      size: 3929
+    - path: scripts/feature_engineering.py
+      hash: md5
+      md5: 3e651a9a71b822f9a41558cb9adf136a
+      size: 1784
+      isexec: true
+    outs:
+    - path: data/processed/features_ratings.parquet
+      hash: md5
+      md5: 7fce786158d9bd0cf3bb6e8329c67564
+      size: 5083
+  train:
+    cmd: python scripts/train.py  --epochs 2  --lr 0.001  --batch-size 1024  
+      --embedding-dim 32  --model-type torch_mlp
+    deps:
+    - path: data/processed/features_ratings.parquet
+      hash: md5
+      md5: 7fce786158d9bd0cf3bb6e8329c67564
+      size: 5083
+    - path: scripts/train.py
+      hash: md5
+      md5: 0c3865ed74469afd2d7e0aee3eba70ee
+      size: 3377
+      isexec: true
+    params:
+      params.yaml:
+        train.batch_size: 1024
+        train.embedding_dim: 32
+        train.epochs: 2
+        train.lr: 0.001
+        train.model_type: torch_mlp
+    outs:
+    - path: models/model.pth
+      hash: md5
+      md5: 04dfd66ebb6ff56c5069d8f42ff132f3
+      size: 37309
+  evaluate:
+    cmd: python scripts/evaluate.py
+    deps:
+    - path: data/processed/features_ratings.parquet
+      hash: md5
+      md5: 7fce786158d9bd0cf3bb6e8329c67564
+      size: 5083
+    - path: models/model.pth
+      hash: md5
+      md5: 04dfd66ebb6ff56c5069d8f42ff132f3
+      size: 37309
+    - path: scripts/evaluate.py
+      hash: md5
+      md5: 830c9ab5946892937e959bc77133a614
+      size: 2258
+      isexec: true
+    outs:
+    - path: metrics.json
+      hash: md5
+      md5: 63c5c26cc74d62f28b90a39e85556d47
+      size: 65
