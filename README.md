@@ -24,63 +24,57 @@ scripts/        # hello_train, fetch TMDB, relatórios de metadados
 tests/          # espelha src/
 ```
 
-## Desenvolvimento local
+## Pré-requisitos
 
+Para executar este projeto, você precisará ter instalado em sua máquina:
+
+1.  **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** (recomendado para Windows/macOS) ou **Docker + Docker Compose** (Linux).
+2.  **Git** para clonar o repositório.
+3.  **Dataset MovieLens 20M**: Devido ao tamanho (600MB+), os arquivos brutos não estão no Git.
+    *   Baixe o dataset no [Kaggle](https://www.kaggle.com/datasets/grouplens/movielens-20m-dataset).
+    *   Extraia os arquivos `.csv` na pasta `data/raw/` do projeto. Você deve ter pelo menos:
+        *   `data/raw/rating.csv`
+        *   `data/raw/movie.csv`
+        *   `data/raw/link.csv`
+
+---
+
+## Como Executar (Guia Rápido)
+
+Siga estes passos para treinar o modelo e visualizar os resultados sem precisar configurar um ambiente Python local:
+
+### 1. Clonar e Configurar
 ```bash
-# Python 3.11+
-python -m venv .venv
-.venv\Scripts\activate          # Windows
-# source .venv/bin/activate     # Linux/macOS
-
-pip install -e ".[dev]"
-
-ruff check .
-ruff format .
-pytest
-
-pre-commit install
-pre-commit run --all-files
+git clone <url-do-repositorio>
+cd 9mlet-tech-challenge-2-movie-rec-sys
+# Certifique-se de que os dados estão em data/raw/
 ```
 
-## Etapa de scraping TMDB (já concluída no repo)
-
-Metadados consolidados em `data/processed/movie_metadata.parquet` (versionado no Git).
-
-Para **refazer** a coleta:
-
+### 2. Primeiro Treinamento (Forçado)
+Como os ambientes Docker são isolados, na primeira execução precisamos forçar o "pipeline" de dados a rodar completamente:
 ```bash
-python scripts/fetch_external_metadata.py --limit 3   # teste
-python scripts/fetch_external_metadata.py --resume  # ~27k filmes
-python scripts/metadata_coverage_report.py          # relatório P.8
+docker-compose run train python -m dvc repro -f
+```
+*Este comando vai: Limpar dados antigos -> Processar Ratings -> Enriquecer com Metadados -> Treinar o Modelo PyTorch.*
+
+### 3. Subir o ambiente completo
+Após o treinamento, inicie os serviços para persistir os resultados e abrir a interface visual:
+```bash
+docker-compose up
 ```
 
-## Docker
+### 4. Acompanhar Experimentos (MLflow)
+Com os containers rodando, abra o navegador e acesse:
+👉 **[http://localhost:5000](http://localhost:5000)**
 
-```bash
-# Build e smoke test
-docker build -t movie-rec-sys .
-docker run --rm movie-rec-sys
+Lá você encontrará:
+*   Métricas de erro (MSE) por época.
+*   Parâmetros utilizados (Learning Rate, Batch Size, etc).
+*   O modelo treinado pronto para download (`model.pth`).
 
-# App + MLflow (UI em http://localhost:5000)
-docker compose up --build
-```
+---
 
-Copie `.env.example` para `.env` só se for **refazer** a coleta TMDB.
-
-## Dados para o time
-
-| Artefato | Como obter |
-|----------|------------|
-| Metadados TMDB | `git pull` → `data/processed/movie_metadata.parquet` (~7,5 MB) |
-| MovieLens 20M | [Kaggle](https://www.kaggle.com/datasets/grouplens/movielens-20m-dataset) → `data/raw/` (`movie.csv`, `link.csv`, `rating.csv`, …) |
-| Cache JSON do scrap | Local apenas — **não** vai no Git |
-
-**Setup rápido após clone:**
-
-```bash
-pip install -e ".[dev]"
-# Baixar MovieLens em data/raw/ (CSV não estão no repositório)
-```
+## Desenvolvimento local (Opcional para Devs)
 
 ## Plano de execução
 
