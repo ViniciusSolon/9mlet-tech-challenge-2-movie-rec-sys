@@ -1,0 +1,29 @@
+---
+description: Python ML stack enforcement for FIAP recommender project
+globs: "**/*.py"
+alwaysApply: true
+---
+
+# Python ML Standards
+
+## Stack (mandatory)
+
+Python 3.11+, PyTorch, scikit-learn, MLflow, DVC, Pandas, NumPy, Ruff, Pytest, Poetry/uv.
+
+## Code
+
+- Type hints + Google docstrings on public APIs
+- Functions ≤ 20 lines; SOLID; Factory for models, Strategy for preprocessors
+- Fixed seeds via `src/training/seeds.py`; log config to MLflow
+
+## Dependencies
+
+Only use packages in `.cursor/libs/allowed-libs.md`. No TensorFlow unless explicitly approved.
+
+## Layout
+
+`src/domain`, `src/data`, `src/features`, `src/models`, `src/training`, `src/evaluation`, `src/serving`
+
+## Prohibited
+
+Node.js tooling, notebooks as production training path, hardcoded secrets, raw MovieLens in Git.

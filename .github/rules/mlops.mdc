@@ -1,0 +1,30 @@
+---
+description: DVC, MLflow, Docker pipeline rules
+globs: "{dvc.yaml,params.yaml,**/dvc.lock,Dockerfile,docker-compose*.yml,.github/**/*.yml,configs/**}"
+alwaysApply: true
+---
+
+# MLOps Enforcement
+
+## Pipeline
+
+Stages: preprocess → enrich_metadata → feature_eng → train → evaluate → registry → inference
+
+- Define stages in `dvc.yaml` with explicit deps/outs
+- TMDB fetch cached under DVC; no API call every `dvc repro`
+- Track data with DVC remote; commit `dvc.lock` only
+
+## MLflow
+
+Log params, metrics (Recall@K, Precision@K, NDCG@K, RMSE), artifacts every train run.
+Registry: Staging → Production after evaluate passes.
+
+## Docker
+
+Multi-stage Dockerfile; docker-compose for app + mlflow (+ postgres optional).
+
+## Reproducibility
+
+`poetry install` or `uv sync` + `dvc repro` must work on clean machine per README.
+
+See `.cursor/context/ml-pipeline.md` and `.cursor/context/deployment.md`.
