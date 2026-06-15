@@ -4,15 +4,39 @@ from __future__ import annotations
 
 from typing import Any
 
+import torch
+from torch import nn
+
 from models.base import RecommenderModel
 
 
-class TorchMLPRecommender(RecommenderModel):
+class TorchMLPRecommender(nn.Module, RecommenderModel):
     """Placeholder for MLP on concatenated embeddings."""
 
-    def __init__(self, hidden_dim: int = 128) -> None:
-        self._hidden_dim = hidden_dim
+    def __init__(
+        self,
+        n_users: int = 100,
+        n_items: int = 100,
+        embedding_dim: int = 32,
+        hidden_dim: int = 128,
+    ) -> None:
+        super().__init__()
+        self.user_embedding = nn.Embedding(n_users, embedding_dim)
+        self.item_embedding = nn.Embedding(n_items, embedding_dim)
+        self.fc = nn.Sequential(
+            nn.Linear(embedding_dim * 2, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, 1),
+        )
         self._fitted = False
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        users = x[:, 0]
+        items = x[:, 1]
+        user_emb = self.user_embedding(users)
+        item_emb = self.item_embedding(items)
+        out = torch.cat([user_emb, item_emb], dim=-1)
+        return self.fc(out)
 
     @property
     def name(self) -> str:
