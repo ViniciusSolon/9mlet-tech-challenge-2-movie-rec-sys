@@ -1,0 +1,16 @@
+---
+description: Pytest and ML pipeline testing standards
+globs: "tests/**/*.py,**/test_*.py"
+alwaysApply: true
+---
+
+# Testing Standards
+
+- Use pytest; mirror `src/` under `tests/`
+- Unit-test metrics (Recall@K, Precision@K, NDCG@K, RMSE) with known inputs
+- Temporal split tests: train timestamps < test timestamps
+- Synthetic fixtures only; no full MovieLens in repo
+- Mock external APIs (TMDB)
+- PRs adding `src/` must add tests; CI runs `pytest` + `ruff`
+
+See `.cursor/rules/testing-rules.md`.

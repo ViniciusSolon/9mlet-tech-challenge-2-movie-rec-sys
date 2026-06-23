@@ -1,0 +1,9 @@
+preprocess:
+  strategy: explicit
+
+train:
+  epochs: 2
+  lr: 0.001
+  batch_size: 1024
+  embedding_dim: 32
+  model_type: torch_mlp

@@ -17,7 +17,7 @@ dependencies = [
     "scipy>=1.13",
     "scikit-learn>=1.5",
     # PyTorch — resolve from PyPI (CPU on macOS Intel/ARM, GPU-optional on Linux)
-    "torch>=2.2",
+    "torch>=2.4",
     # Experiment tracking + model registry (Etapa 3)
     "mlflow>=2.18",
     # Pipeline & data versioning (Etapa 3)

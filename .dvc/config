@@ -1,0 +1,6 @@
+[core]
+    no_scm = True
+    remote = local_remote
+    autostage = true
+['remote "local_remote"']
+    url = ../data/dvc_remote

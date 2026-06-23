@@ -1,23 +1,22 @@
 services:
-  app:
+  train:
     build:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./data:/app/data
-      - ./models:/app/models
-      - ./configs:/app/configs
+      - .:/app
     env_file:
       - .env.example
     environment:
       MLFLOW_TRACKING_URI: http://mlflow:5000
     depends_on:
       - mlflow
+    command: ["python", "-m", "dvc", "repro"]
 
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.18.0
-    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri /mlruns
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///app/mlflow.db --default-artifact-root /app/artifacts --serve-artifacts
     ports:
       - "5000:5000"
     volumes:
-      - ./mlruns:/mlruns
+      - ./mlruns:/app

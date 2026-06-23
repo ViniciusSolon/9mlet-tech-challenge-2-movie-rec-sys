@@ -1,0 +1,59 @@
+stages:
+  preprocess:
+    cmd: python scripts/preprocess.py --strategy ${preprocess.strategy}
+    deps:
+      - scripts/preprocess.py
+      - data/raw/ratings.csv
+    params:
+      - preprocess.strategy
+    outs:
+      - data/processed/preprocessed_ratings.parquet
+
+  enrich_metadata:
+    cmd: python scripts/enrich_metadata.py
+    deps:
+      - scripts/enrich_metadata.py
+      - data/raw/movies.csv
+      - data/raw/links.csv
+      - data/processed/movie_metadata.parquet
+    outs:
+      - data/processed/enriched_metadata.parquet
+
+  feature_eng:
+    cmd: python scripts/feature_engineering.py
+    deps:
+      - scripts/feature_engineering.py
+      - data/processed/preprocessed_ratings.parquet
+      - data/processed/enriched_metadata.parquet
+    outs:
+      - data/processed/features_ratings.parquet
+
+  train:
+    cmd: >-
+      python scripts/train.py 
+      --epochs ${train.epochs} 
+      --lr ${train.lr} 
+      --batch-size ${train.batch_size} 
+      --embedding-dim ${train.embedding_dim} 
+      --model-type ${train.model_type}
+    deps:
+      - scripts/train.py
+      - data/processed/features_ratings.parquet
+    params:
+      - train.epochs
+      - train.lr
+      - train.batch_size
+      - train.embedding_dim
+      - train.model_type
+    outs:
+      - models/model.pth
+
+  evaluate:
+    cmd: python scripts/evaluate.py
+    deps:
+      - scripts/evaluate.py
+      - data/processed/features_ratings.parquet
+      - models/model.pth
+    metrics:
+      - metrics.json:
+          cache: false
