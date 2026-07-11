@@ -35,7 +35,12 @@ stages:
       --lr ${train.lr} 
       --batch-size ${train.batch_size} 
       --embedding-dim ${train.embedding_dim} 
+      --hidden-dim ${train.hidden_dim}
+      --dropout ${train.dropout}
       --model-type ${train.model_type}
+      --val-split ${train.val_split}
+      --patience ${train.patience}
+      --seed ${train.seed}
     deps:
       - scripts/train.py
       - data/processed/features_ratings.parquet
@@ -44,7 +49,12 @@ stages:
       - train.lr
       - train.batch_size
       - train.embedding_dim
+      - train.hidden_dim
+      - train.dropout
       - train.model_type
+      - train.val_split
+      - train.patience
+      - train.seed
     outs:
       - models/model.pth
 
