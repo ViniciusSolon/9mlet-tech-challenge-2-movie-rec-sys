@@ -214,9 +214,10 @@ def main() -> int:
     )
 
     print("\n" + "=" * 60)
-    print(f"  Top-{args.k} Recommendations")
+    print(f"  Top-{args.k} Recommendations  ({n_users} usuários disponíveis)")
     print("=" * 60)
 
+    records = []
     for user_idx, user_id in sorted(idx_to_user.items()):
         seen = seen_by.get(user_idx, set())
         rec_idxs = _recommend(model, user_idx, seen, all_movie_idxs, args.k, device)
@@ -226,6 +227,24 @@ def main() -> int:
         print(f"\nUser {user_id}")
         print(f"  Já assistiu : {', '.join(rated_titles)}")
         print(f"  Recomendado : {', '.join(rec_titles) or '(sem candidatos)'}")
+
+        for rank, (movie_idx, title) in enumerate(
+            zip(rec_idxs, rec_titles), start=1
+        ):
+            records.append(
+                {
+                    "user_id": user_id,
+                    "rank": rank,
+                    "movie_id": idx_to_movie[movie_idx],
+                    "title": title,
+                    "model": args.model,
+                }
+            )
+
+    out_path = ROOT / "data" / "processed" / "recommendations.parquet"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(records).to_parquet(out_path, index=False)
+    print(f"\nRecomendações salvas em {out_path}")
 
     return 0
 
