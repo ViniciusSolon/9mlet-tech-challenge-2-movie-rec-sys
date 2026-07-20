@@ -59,11 +59,19 @@ stages:
       - models/model.pth
 
   evaluate:
-    cmd: python scripts/evaluate.py
+    cmd: >-
+      python scripts/evaluate.py
+      --model-type ${train.model_type}
+      --experiment-name ${mlflow.experiment_name}
+      --registry-model-name ${mlflow.registry_model_name}
     deps:
       - scripts/evaluate.py
       - data/processed/features_ratings.parquet
       - models/model.pth
+    params:
+      - train.model_type
+      - mlflow.experiment_name
+      - mlflow.registry_model_name
     metrics:
       - metrics.json:
           cache: false

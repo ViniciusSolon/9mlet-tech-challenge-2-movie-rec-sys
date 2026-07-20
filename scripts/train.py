@@ -1,4 +1,4 @@
-"""DVC Stage: Train recommendation model with MLflow tracking."""
+"""Train the recommender model and log artifacts to MLflow."""
 
 from __future__ import annotations
 
@@ -24,7 +24,6 @@ from utils.paths import get_processed_dir, get_project_root
 
 
 def parse_args() -> argparse.Namespace:
-    """Parse CLI arguments for the train stage."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--lr", type=float, default=0.001)
@@ -42,17 +41,7 @@ def parse_args() -> argparse.Namespace:
 def _build_loaders(
     df: pd.DataFrame, val_split: float, batch_size: int, seed: int
 ) -> tuple[DataLoader, DataLoader]:
-    """Split data into train/val and return DataLoader objects.
-
-    Args:
-        df: Feature-ready DataFrame with columns user_idx, movie_idx, rating.
-        val_split: Fraction of data to use for validation.
-        batch_size: Mini-batch size.
-        seed: Random seed for the split.
-
-    Returns:
-        Tuple (train_loader, val_loader).
-    """
+    """Split data into train/validation loaders."""
     val_n = max(1, int(len(df) * val_split))
     val_df = df.sample(n=val_n, random_state=seed)
     train_df = df.drop(val_df.index)
@@ -72,18 +61,7 @@ def _run_epoch(
     optimizer: optim.Optimizer | None,
     device: torch.device,
 ) -> float:
-    """Run one epoch of training or evaluation.
-
-    Args:
-        model: The PyTorch model.
-        loader: DataLoader for this split.
-        criterion: Loss function.
-        optimizer: Optimiser (``None`` for eval mode).
-        device: Compute device.
-
-    Returns:
-        Mean loss over all batches.
-    """
+    """Run one training or validation epoch."""
     is_train = optimizer is not None
     model.train(is_train)
     total_loss = 0.0
@@ -101,7 +79,6 @@ def _run_epoch(
 
 
 def main() -> int:
-    """Train the recommender model and log artefacts to MLflow."""
     args = parse_args()
     set_global_seeds(args.seed)
 
@@ -117,11 +94,18 @@ def main() -> int:
     print(f"Loading features from {ratings_path}...")
     df = pd.read_parquet(ratings_path)
 
+    os.environ["GIT_PYTHON_REFRESH"] = "quiet"
+    tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+    mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_experiment("movie-rec-sys-training")
+
     n_users = int(df["user_idx"].max() + 1)
     n_movies = int(df["movie_idx"].max() + 1)
-
     train_loader, val_loader = _build_loaders(
-        df, args.val_split, args.batch_size, args.seed
+        df,
+        args.val_split,
+        args.batch_size,
+        args.seed,
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -132,19 +116,19 @@ def main() -> int:
         n_users=n_users,
         n_items=n_movies,
         embedding_dim=args.embedding_dim,
+        hidden_dim=args.hidden_dim,
+        dropout=args.dropout,
     )
     model.to(device)
 
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, patience=2, factor=0.5, verbose=True
+        optimizer,
+        patience=2,
+        factor=0.5,
+        verbose=True,
     )
-
-    os.environ["GIT_PYTHON_REFRESH"] = "quiet"
-    tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
-    mlflow.set_tracking_uri(tracking_uri)
-    mlflow.set_experiment("movie-rec-sys-training")
 
     best_val_loss = float("inf")
     best_epoch = 0
@@ -162,8 +146,8 @@ def main() -> int:
                 "lr": args.lr,
                 "batch_size": args.batch_size,
                 "embedding_dim": args.embedding_dim,
-                "hidden_dim": getattr(args, "hidden_dim", 128),
-                "dropout": getattr(args, "dropout", 0.2),
+                "hidden_dim": args.hidden_dim,
+                "dropout": args.dropout,
                 "val_split": args.val_split,
                 "patience": args.patience,
                 "seed": args.seed,
@@ -183,10 +167,15 @@ def main() -> int:
                 f"train_mse={train_loss:.4f}  val_mse={val_loss:.4f}"
             )
             mlflow.log_metrics(
-                {"train_mse": train_loss, "val_mse": val_loss}, step=epoch
+                {"train_mse": train_loss, "val_mse": val_loss},
+                step=epoch,
             )
             training_history.append(
-                {"epoch": epoch + 1, "train_mse": train_loss, "val_mse": val_loss}
+                {
+                    "epoch": epoch + 1,
+                    "train_mse": train_loss,
+                    "val_mse": val_loss,
+                }
             )
 
             if val_loss < best_val_loss:
@@ -207,11 +196,10 @@ def main() -> int:
         mlflow.log_artifact(str(model_path))
 
         history_path = models_dir / "training_history.json"
-        with open(history_path, "w") as fh:
+        with open(history_path, "w", encoding="utf-8") as fh:
             json.dump(training_history, fh, indent=2)
         mlflow.log_artifact(str(history_path))
 
-        model.fit(None)
         mlflow.pytorch.log_model(model, artifact_path="model")
 
     print(f"Model saved to {model_path}")

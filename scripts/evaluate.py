@@ -1,44 +1,110 @@
-"""DVC Stage: Evaluate model performance with ≥ 4 metrics (Bloco 5)."""
+"""Evaluate PyTorch and sklearn recommender models with MLflow tracking."""
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import sys
 from pathlib import Path
 
 import mlflow
+import mlflow.pytorch
+import mlflow.sklearn
 import numpy as np
 import pandas as pd
 import torch
+from sklearn.model_selection import train_test_split
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from evaluation.metrics import average_metrics, mae, rmse
+from evaluation.metric_strategy import compute_metrics
+from evaluation.registry import MLflowRegistryManager
 from models.factory import create_model
+from training.seeds import set_global_seeds
 from utils.paths import get_processed_dir, get_project_root
 
 _K = 10
 _RELEVANT_THRESHOLD = 4.0
 
 
-def _build_test_sets(
-    df: pd.DataFrame, seed: int = 42
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Hold out the last 10 % of interactions as the test set.
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model-type", type=str, default="torch_mlp")
+    parser.add_argument(
+        "--experiment-name",
+        type=str,
+        default="movie-rec-sys-training",
+    )
+    parser.add_argument(
+        "--registry-model-name",
+        type=str,
+        default="movie-rec-sys",
+    )
+    return parser.parse_args()
 
-    Args:
-        df: Feature-ready ratings DataFrame.
-        seed: Random seed for reproducibility.
 
-    Returns:
-        Tuple (train_df, test_df).
-    """
+def _build_test_sets(df: pd.DataFrame, seed: int = 42) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Split interactions into train and test sets for ranking evaluation."""
     test_n = max(1, int(len(df) * 0.10))
     test_df = df.sample(n=test_n, random_state=seed)
     train_df = df.drop(test_df.index)
     return train_df, test_df
+
+
+def _split_ratings(df: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Transform the DataFrame into train/test arrays for regression metrics."""
+    X = df[["user_idx", "movie_idx"]].to_numpy(dtype=int)
+    y = df["rating"].to_numpy(dtype=float)
+    return train_test_split(X, y, test_size=0.2, random_state=42)
+
+
+def load_torch_model(
+    model_type: str,
+    n_users: int,
+    n_items: int,
+    model_path: Path,
+    embedding_dim: int = 32,
+) -> torch.nn.Module:
+    """Load a torch model from disk with the expected constructor arguments."""
+    model = create_model(
+        model_type,
+        n_users=n_users,
+        n_items=n_items,
+        embedding_dim=embedding_dim,
+    )
+    model.load_state_dict(torch.load(model_path, map_location="cpu"))
+    model.eval()
+    return model
+
+
+def log_mlflow_model(
+    model: object,
+    model_name: str,
+    metrics: dict[str, float],
+    params: dict[str, object],
+) -> str:
+    """Log metrics and model artifact for a candidate run."""
+    with mlflow.start_run(run_name=model_name) as run:
+        mlflow.log_params(params)
+        mlflow.log_metrics(metrics)
+        if model_name.startswith("torch"):
+            mlflow.pytorch.log_model(model, "model")
+        else:
+            mlflow.sklearn.log_model(model.estimator, "model")
+        return run.info.run_id
+
+
+def evaluate_candidate(
+    model: object,
+    X_test: np.ndarray,
+    y_test: np.ndarray,
+) -> dict[str, float]:
+    """Compute the standard rating metrics for a candidate model."""
+    predictions = model.predict(X_test)
+    return compute_metrics(y_test.tolist(), predictions)
 
 
 def _compute_ranking_metrics(
@@ -49,27 +115,9 @@ def _compute_ranking_metrics(
     k: int,
     device: torch.device,
 ) -> dict[str, float]:
-    """Compute mean Precision, Recall, NDCG, Hit Rate at K.
-
-    For each user in the test set the model scores all items not seen
-    during training, ranks them, and the top-K list is compared against
-    the ground-truth relevant items (rating ≥ threshold).
-
-    Args:
-        model: Trained PyTorch recommender.
-        train_df: Training interactions used to build seen-item sets.
-        test_df: Held-out interactions used as ground truth.
-        n_items: Total number of items in the catalogue.
-        k: Ranking cut-off.
-        device: Compute device.
-
-    Returns:
-        Dict with mean Precision@K, Recall@K, NDCG@K, Hit Rate@K.
-    """
+    """Compute ranking metrics for a torch-based recommender."""
     seen: dict[int, set[int]] = (
-        train_df.groupby("user_idx")["movie_idx"]
-        .apply(set)
-        .to_dict()
+        train_df.groupby("user_idx")["movie_idx"].apply(set).to_dict()
     )
     relevant: dict[int, set[int]] = (
         test_df[test_df["rating"] >= _RELEVANT_THRESHOLD]
@@ -104,68 +152,122 @@ def _compute_ranking_metrics(
     return average_metrics(recommended_lists, relevant_sets, k)
 
 
+def save_metrics(path: Path, payload: dict[str, object]) -> None:
+    """Persist the evaluation payload to disk."""
+    path.write_text(json.dumps(payload, indent=4), encoding="utf-8")
+
+
 def main() -> int:
-    """Load the trained model and emit evaluation metrics."""
+    args = parse_args()
+    set_global_seeds(42)
     processed_dir = get_processed_dir()
     models_dir = get_project_root() / "models"
 
     ratings_path = processed_dir / "features_ratings.parquet"
     model_path = models_dir / "model.pth"
-
     if not ratings_path.exists() or not model_path.exists():
         print("Missing inputs for evaluation.")
         return 1
 
+    tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+    mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_experiment(args.experiment_name)
+
     df = pd.read_parquet(ratings_path)
     train_df, test_df = _build_test_sets(df)
+    X_train, X_test, y_train, y_test = _split_ratings(df)
 
     n_users = int(df["user_idx"].max() + 1)
     n_movies = int(df["movie_idx"].max() + 1)
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    model = create_model("torch_mlp", n_users=n_users, n_items=n_movies)
-    model.load_state_dict(torch.load(model_path, map_location=device))
-    model.to(device)
-    model.eval()
+    candidates: list[dict[str, object]] = []
+    for baseline in ["knn", "random_forest"]:
+        model = create_model(
+            "sklearn_baseline",
+            baseline=baseline,
+            n_neighbors=1 if baseline == "knn" else 2,
+            max_depth=3,
+        )
+        model.fit(X_train, y_train)
+        metrics = evaluate_candidate(model, X_test, y_test)
+        run_id = log_mlflow_model(
+            model,
+            model.name,
+            metrics,
+            {
+                "baseline": baseline,
+                "model_type": model.name,
+                "experiment": args.experiment_name,
+            },
+        )
+        candidates.append(
+            {
+                "name": model.name,
+                "run_id": run_id,
+                "artifact_path": "model",
+                "metrics": metrics,
+            }
+        )
 
-    X_test = torch.tensor(
-        test_df[["user_idx", "movie_idx"]].values, dtype=torch.long
-    ).to(device)
-    y_true = test_df["rating"].values
-
-    with torch.no_grad():
-        y_pred = model(X_test).squeeze().cpu().numpy()
-
-    rating_metrics = {
-        "rmse": rmse(y_true, y_pred),
-        "mae": mae(y_true, y_pred),
-        "mse": float(((y_true - y_pred) ** 2).mean()),
-    }
-
-    ranking = _compute_ranking_metrics(
-        model, train_df, test_df, n_movies, _K, device
+    torch_model = load_torch_model(
+        args.model_type,
+        n_users,
+        n_movies,
+        model_path,
+        embedding_dim=32,
     )
-    ranking_metrics = {f"{key}@{_K}": val for key, val in ranking.items()}
+    torch_model.fit([], None)
+    torch_model.to(device)
 
-    metrics = {**rating_metrics, **ranking_metrics}
-    print("Evaluation metrics:")
-    for key, val in metrics.items():
-        print(f"  {key}: {val:.4f}")
+    metrics = evaluate_candidate(torch_model, X_test, y_test)
+    ranking_metrics = _compute_ranking_metrics(
+        torch_model,
+        train_df,
+        test_df,
+        n_movies,
+        _K,
+        device,
+    )
+    metrics = {**metrics, **{f"{key}@{_K}": value for key, value in ranking_metrics.items()}}
 
-    with open("metrics.json", "w") as fh:
-        json.dump(metrics, fh, indent=4)
+    run_id = log_mlflow_model(
+        torch_model,
+        torch_model.name,
+        metrics,
+        {
+            "model_type": args.model_type,
+            "experiment": args.experiment_name,
+        },
+    )
+    candidates.append(
+        {
+            "name": torch_model.name,
+            "run_id": run_id,
+            "artifact_path": "model",
+            "metrics": metrics,
+        }
+    )
 
-    tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
-    mlflow.set_tracking_uri(tracking_uri)
-    mlflow.set_experiment("movie-rec-sys-training")
+    champion = min(candidates, key=lambda item: item["metrics"]["rmse"])
+    registry = MLflowRegistryManager(tracking_uri, args.registry_model_name)
+    model_version = registry.register_model_version(
+        champion["run_id"],
+        champion["artifact_path"],
+    )
+    stage = registry.promote_champion(model_version, champion["metrics"])
 
-    try:
-        with mlflow.start_run(run_name="evaluation"):
-            mlflow.log_metrics(metrics)
-    except Exception as exc:
-        print(f"Warning: MLflow tracking failed: {exc}")
-
+    result = {
+        "candidates": candidates,
+        "champion": {
+            "name": champion["name"],
+            "run_id": champion["run_id"],
+            "version": model_version,
+            "stage": stage,
+        },
+    }
+    save_metrics(Path("metrics.json"), result)
+    print(f"Champion: {champion['name']} version {model_version} in {stage}")
     return 0
 
 

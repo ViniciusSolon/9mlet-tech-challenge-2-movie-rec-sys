@@ -12,3 +12,7 @@ train:
   val_split: 0.1
   patience: 3
   seed: 42
+
+mlflow:
+  experiment_name: movie-rec-sys-training
+  registry_model_name: movie-rec-sys

@@ -1,6 +1,6 @@
 # Relatório de cobertura — metadados TMDB (P.8)
 
-> Gerado a partir de `D:/Projetos/FIAP/Tech Challenge 02/9mlet-tech-challenge-2-movie-rec-sys/data/processed/movie_metadata.parquet`.
+> Gerado a partir de `data/processed/movie_metadata.parquet`.
 
 ## Resumo da coleta (`fetch_status`)
 

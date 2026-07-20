@@ -1,4 +1,4 @@
-"""PyTorch MLP recommender with user/item embeddings (Bloco 5)."""
+"""PyTorch MLP recommender with user/item embeddings."""
 
 from __future__ import annotations
 
@@ -11,18 +11,7 @@ from models.base import RecommenderModel
 
 
 class TorchMLPRecommender(nn.Module, RecommenderModel):
-    """MLP rating predictor built on concatenated user+item embeddings.
-
-    Architecture: Embedding(user) || Embedding(item) → Linear → ReLU
-    → Dropout → Linear → ReLU → Linear(1).
-
-    Args:
-        n_users: Total number of unique users (vocabulary size).
-        n_items: Total number of unique items (vocabulary size).
-        embedding_dim: Dimension of each embedding vector.
-        hidden_dim: Width of the first hidden layer.
-        dropout: Dropout probability applied after each hidden layer.
-    """
+    """MLP rating predictor built on concatenated user+item embeddings."""
 
     def __init__(
         self,
@@ -48,7 +37,7 @@ class TorchMLPRecommender(nn.Module, RecommenderModel):
         self._init_weights()
 
     def _init_weights(self) -> None:
-        """Xavier-uniform initialisation for linear layers."""
+        """Initialise weights with Xavier uniform distribution."""
         nn.init.xavier_uniform_(self.user_embedding.weight)
         nn.init.xavier_uniform_(self.item_embedding.weight)
         for module in self.fc.modules():
@@ -57,14 +46,6 @@ class TorchMLPRecommender(nn.Module, RecommenderModel):
                 nn.init.zeros_(module.bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Predict rating scores for (user, item) index pairs.
-
-        Args:
-            x: Long tensor of shape (batch, 2) — columns [user_idx, item_idx].
-
-        Returns:
-            Float tensor of shape (batch, 1) with predicted scores.
-        """
         users = x[:, 0]
         items = x[:, 1]
         user_emb = self.user_embedding(users)
@@ -74,7 +55,6 @@ class TorchMLPRecommender(nn.Module, RecommenderModel):
 
     @property
     def name(self) -> str:
-        """Human-readable model identifier."""
         return "torch_mlp"
 
     def fit(
@@ -82,26 +62,18 @@ class TorchMLPRecommender(nn.Module, RecommenderModel):
         features: Any,
         targets: Any | None = None,
     ) -> TorchMLPRecommender:
-        """Mark the model as fitted (training is handled externally)."""
         self._fitted = True
         return self
 
     def predict(self, features: torch.Tensor) -> list[float]:
-        """Return predicted scores for a batch of (user, item) pairs.
-
-        Args:
-            features: Long tensor of shape (N, 2).
-
-        Returns:
-            List of N predicted rating scores.
-
-        Raises:
-            RuntimeError: If the model has not been fitted yet.
-        """
         if not self._fitted:
-            msg = "model is not fitted"
-            raise RuntimeError(msg)
+            raise RuntimeError("model is not fitted")
+        tensor = (
+            features
+            if isinstance(features, torch.Tensor)
+            else torch.tensor(features, dtype=torch.long)
+        )
         self.eval()
         with torch.no_grad():
-            scores = self.forward(features).squeeze().tolist()
-        return scores if isinstance(scores, list) else [scores]
+            predictions = self.forward(tensor).squeeze().cpu().numpy()
+        return predictions.tolist()
