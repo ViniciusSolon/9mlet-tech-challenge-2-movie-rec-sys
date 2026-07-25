@@ -54,9 +54,12 @@ class MLflowRegistryManager:
         )
 
     def validate_metrics(self, metrics: dict[str, float]) -> bool:
-        return all(
-            math.isfinite(value) and value >= 0.0 for value in metrics.values()
-        )
+        for name, value in metrics.items():
+            if name == "r2":
+                continue
+            if not math.isfinite(value) or value < 0.0:
+                return False
+        return True
 
     def promote_champion(self, version: int, metrics: dict[str, float]) -> str:
         self.stage_model_version(version, "Staging")

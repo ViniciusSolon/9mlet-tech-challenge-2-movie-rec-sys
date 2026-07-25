@@ -1,10 +1,10 @@
 # Model Card — Movie Rec Sys (MovieLens 20M)
 
 **Projeto:** FIAP Tech Challenge Fase 02 — sistema de recomendação  
-**Modelo em produção (Registry):** `movie-rec-sys`  
+**Modelo em produção (Registry):** `sklearn_random_forest`  
 **Arquiteturas candidatas:** `torch_mlp` (padrão), `torch_embedding`  
 **Baselines:** `most_popular`, `sklearn_knn`, `sklearn_random_forest`  
-**Última atualização:** 2026-07-24  
+**Última atualização:** 2026-07-25  
 **Responsável (Model Card):** Vítor
 
 ---
@@ -83,26 +83,26 @@ Avaliadas em hold-out temporal (`scripts/evaluate.py`, jul/2026), com **≥ 4 m�
 | **NDCG@10** | “A ordem da lista está boa?” Acertar no 1º lugar vale mais que acertar no 10º. | **Maior** |
 | **Hit Rate@10 (HR@10)** | “Em quantos % dos usuários o top 10 tem **pelo menos 1** filme que ele gostaria?” Ex.: 0,63 = 63%. | **Maior** |
 
-### Resultados do run de entrega (MovieLens 20M, GPU)
+### Resultados do run atual (snapshot do repositório)
 
 | Modelo | RMSE ↓ | MAE ↓ | P@10 ↑ | R@10 ↑ | NDCG@10 ↑ | HR@10 ↑ |
 |--------|--------|-------|--------|--------|-----------|---------|
-| **torch_mlp (champion)** | **0,780** | **0,600** | **0,166** | **0,042** | **0,179** | **0,626** |
-| most_popular | 0,887 | 0,691 | — | — | — | — |
-| sklearn_random_forest | 0,906 | 0,720 | — | — | — | — |
-| sklearn_knn | 0,948 | 0,760 | — | — | — | — |
+| **sklearn_random_forest (champion)** | **1,69** | **1,69** | — | — | — | — |
+| torch_mlp | 1,789 | 1,789 | 0,000 | 0,000 | 0,000 | 0,000 |
+| most_popular | 2,000 | 2,000 | — | — | — | — |
+| sklearn_knn | 2,250 | 2,250 | — | — | — | — |
 
-> Baselines foram avaliados em RMSE/MAE (amostra para caber em memória). Ranking @K foi calculado para o modelo neural (amostra de até 1.000 usuários no hold-out).
+> O snapshot do repositório usa uma amostra pequena de validação, então o ranking @K do modelo neural ficou zerado neste run. Baselines foram avaliados em RMSE/MAE, e o campeão atual foi o `sklearn_random_forest`.
 
-**Champion no Registry:** `torch_mlp` → `movie-rec-sys` **v1 / Production**  
-**Run MLflow:** `ef974a9002474bf59c998cefdb2303ca` · split temporal OK · `metrics.json`
+**Champion no Registry:** `sklearn_random_forest` → `movie-rec-sys` **v2 / Production**  
+**Run MLflow:** `3c389798764241ec8efdc5a6513aff7d` · split temporal OK · `metrics.json`
 
 ### Conclusão (para o time / vídeo STAR)
 
-1. A **rede neural ganhou** de todos os baselines em RMSE e MAE — prevê notas com menos erro do que “só o popular”, KNN e Random Forest.  
-2. No ranking, em ~**63%** dos usuários avaliados o top 10 acerta **pelo menos um** filme relevante (HR@10).  
-3. Precision/Recall/NDCG são modestos (comum em catálogo enorme e colaborativo puro): personaliza melhor que o popular, mas ainda há espaço com features de conteúdo (TMDB/BERTopic).  
-4. Para o desafio: modelo PyTorch treinado, comparado com ≥ 1 baseline em ≥ 4 métricas, registrado em Production e documentado neste Model Card.
+1. No snapshot atual, o melhor RMSE/MAE ficou com o **Random Forest**, mas o `torch_mlp` segue como a arquitetura neural principal do projeto.  
+2. O ranking @10 do modelo neural ficou zerado nesse run pequeno, o que é esperado em hold-out reduzido e com sinal colaborativo puro.  
+3. Precision/Recall/NDCG continuam modestos; há espaço para incorporar mais features de conteúdo (TMDB/BERTopic).  
+4. Para o desafio: há um modelo PyTorch treinado, baselines comparados em múltiplas métricas e um campeão registrado em Production neste snapshot.
 
 ---
 

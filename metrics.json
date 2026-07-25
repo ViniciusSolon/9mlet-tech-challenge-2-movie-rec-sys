@@ -45,7 +45,7 @@
     "candidates": [
         {
             "name": "most_popular",
-            "run_id": "ef52c30c13214b94923deccc3c9e3091",
+            "run_id": "abf3b1bfcbd442eb81945b17be391c48",
             "artifact_path": "model",
             "metrics": {
                 "rmse": 2.0,
@@ -56,7 +56,7 @@
         },
         {
             "name": "sklearn_knn",
-            "run_id": "1a2a2a91f83e4ac4bc9666c15412e1fe",
+            "run_id": "ebce1b7731f641aab76039657ec946b4",
             "artifact_path": "model",
             "metrics": {
                 "rmse": 2.25,
@@ -67,7 +67,7 @@
         },
         {
             "name": "sklearn_random_forest",
-            "run_id": "f9fd19f57f5c4a3aa0219f882908d167",
+            "run_id": "3c389798764241ec8efdc5a6513aff7d",
             "artifact_path": "model",
             "metrics": {
                 "rmse": 1.69,
@@ -78,7 +78,7 @@
         },
         {
             "name": "torch_mlp",
-            "run_id": "ce3f4d3a35844df684c86ac591172994",
+            "run_id": "f243d11660bf4a948231903db023323d",
             "artifact_path": "model",
             "metrics": {
                 "rmse": 1.7892700731754303,
@@ -94,8 +94,8 @@
     ],
     "champion": {
         "name": "sklearn_random_forest",
-        "run_id": "f9fd19f57f5c4a3aa0219f882908d167",
-        "version": 1,
-        "stage": "staging"
+        "run_id": "3c389798764241ec8efdc5a6513aff7d",
+        "version": 2,
+        "stage": "production"
     }
 }

@@ -20,6 +20,7 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "configs"))
 
 from settings import load_settings  # noqa: E402
+
 from data.splits import temporal_train_test_split  # noqa: E402
 from models.factory import create_model  # noqa: E402
 from training.seeds import set_global_seeds  # noqa: E402

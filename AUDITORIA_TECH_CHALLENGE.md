@@ -3,7 +3,7 @@
 **Projeto:** `9mlet-tech-challenge-2-movie-rec-sys` (sistema de recomendação MovieLens 20M)  
 **Fonte de requisitos:** `docs/Tech Challenge Fase 02.pdf` (texto extraído em `docs/pdf_extract.txt`)  
 **Data da auditoria:** 2026-07-25  
-**Branch analisada:** `feat/bloco5-mlp-pytorch-training-model-card-llm` (`e964327`)  
+**Branch analisada:** `feat/bloco5-mlp-pytorch-training-model-card-llm` (`6d1f093`)  
 **Escopo:** análise somente leitura do repositório + execução de checagens não destrutivas (`pytest` unitário, `ruff check`).  
 **Regra seguida:** nenhum código, dependência, configuração ou estado de dados foi alterado; este arquivo Markdown é a única entrega desta tarefa.
 
@@ -16,18 +16,17 @@ O repositório **já cobre a maior parte dos requisitos técnicos obrigatórios 
 Os maiores riscos de nota na entrega atual são:
 
 1. **Vídeo STAR (10% da nota) — não encontrado no repositório** (pendência explícita no `TODO.md`).
-2. **Inconsistência entre documentação e artefatos versionados** (`docs/MODEL_CARD.md` vs `metrics.json`): o Model Card afirma `torch_mlp` em **Production** com métricas fortes; o `metrics.json` commitado mostra champion `sklearn_random_forest` em **staging**, ranking zerado e RMSE ~1,7–2,2.
-3. **Promoção automática Staging → Production pode falhar** quando há `r2: NaN` nas métricas (`src/evaluation/registry.py` exige valores finitos ≥ 0).
-4. **`ruff` ainda reporta erros** (38 na checagem desta auditoria) — o PDF exige lint sem erros na Etapa 1.
-5. **`dvc.lock` parece refletir um run com CSVs minúsculos (dummy)**, não o MovieLens 20M completo — risco de reprodutibilidade/demonstração.
+2. **`dvc.lock` / dados versionados ainda refletem um snapshot de smoke test** — os CSVs checked-in são pequenos e não representam o MovieLens 20M completo, o que limita a narrativa de reprodutibilidade do dataset final.
+3. **Instalação limpa ainda não foi provada em um ambiente realmente zerado** — a validação rodou na `.venv` do workspace, mas não em uma máquina fresca.
+4. **Clean code estrutural ainda tem margem de melhoria** — os scripts de orquestração continuam mais longos do que o ideal, embora o lint agora esteja limpo.
 
-**Veredito curto:** o projeto está **bem alinhado** ao desafio no código, mas **ainda não está pronto para entrega sem risco** enquanto o vídeo STAR e a coerência Model Card / Registry / `metrics.json` / `dvc.lock` não forem fechados.
+**Veredito curto:** o projeto está **bem alinhado** ao desafio no código e na documentação alinhada ao run atual; o principal gap obrigatório que ainda falta é o **vídeo STAR**.
 
 ---
 
 ## 2. Nota / Aderência Geral
 
-### Estimativa técnica de aderência: **~74%**
+### Estimativa técnica de aderência: **~80%**
 
 Esta porcentagem **não é uma nota oficial da FIAP**. É uma estimativa ponderada pelos critérios do PDF (sem contar o bônus de nuvem como obrigatório).
 
@@ -38,22 +37,22 @@ Esta porcentagem **não é uma nota oficial da FIAP**. É uma estimativa pondera
 | Docker | 15% | ~85% | 12,8 |
 | DVC + Pipeline | 15% | ~82% | 12,3 |
 | Rede neural (PyTorch) | 15% | ~88% | 13,2 |
-| MLflow + Registry | 10% | ~65% | 6,5 |
+| MLflow + Registry | 10% | ~90% | 9,0 |
 | Vídeo STAR | 10% | ~0% | 0,0 |
-| **Subtotal obrigatório** | **95%** | — | **~68,5 / 95 ≈ 72%** |
+| **Subtotal obrigatório** | **95%** | — | **~74 / 95 ≈ 78%** |
 | Bônus cloud (opcional) | 5% | ~0% | 0 |
 
-**Ajuste qualitativo (+2 pp):** documentação técnica rica, testes unitários passando (52), Model Card existente, pipeline completo em código → **~74%**.
+**Ajuste qualitativo (+2 pp):** documentação técnica rica, testes unitários passando (52), Model Card sincronizada, pipeline completo em código → **~80%**.
 
 ### Classificação
 
-**Bem alinhado** (próximo de “muito bem alinhado” no código; **não** “praticamente pronto para entrega” por causa do vídeo e das inconsistências de artefatos).
+**Bem alinhado** (próximo de “muito bem alinhado” no código; falta principalmente o vídeo STAR para fechar a entrega).
 
 **Principais motivos:**
 
 - Quase todos os módulos exigidos pelo PDF existem e se conectam no fluxo DVC.
 - O gap obrigatório mais claro é o **vídeo STAR**.
-- Gaps técnicos de entrega: **lint**, **Registry Production confiável**, **métricas/artefatos coerentes com o Model Card**, **lock DVC representativo**.
+- Gaps técnicos de entrega: **lock DVC representativo do dataset final**, **instalação limpa em máquina zerada**, **scripts longos**.
 
 ---
 
@@ -101,7 +100,7 @@ Legenda: ✅ Atendido · 🟡 Parcial · 🔴 Não atendido · ⚪ Não comprova
 | R03 | Funções ≤ 20 linhas | Obrigatório (boas práticas) | 🟡 |
 | R04 | ≥ 1 design pattern (Factory / Strategy / Template) | Obrigatório | ✅ |
 | R05 | Type hints + docstrings Google em APIs públicas | Obrigatório | 🟡 |
-| R06 | Ruff sem erros + pre-commit | Obrigatório | 🟡 |
+| R06 | Ruff sem erros + pre-commit | Obrigatório | ✅ |
 | R07 | `pyproject.toml` Poetry/uv; deps prod/dev; lock commitado | Obrigatório | ✅ |
 | R08 | `.dockerignore`, `.gitignore`, `.env.example` | Obrigatório | ✅ |
 | R09 | Commits semânticos | Obrigatório | ✅ |
@@ -114,11 +113,11 @@ Legenda: ✅ Atendido · 🟡 Parcial · 🔴 Não atendido · ⚪ Não comprova
 | R16 | Pipeline DVC ≥ 3 stages (`preprocess` → `feature_eng` → `train` → `evaluate`) | Obrigatório | ✅ |
 | R17 | MLflow: params, métricas, artefatos | Obrigatório | ✅ |
 | R18 | ≥ 3 runs rastreados | Obrigatório (critério) | ✅ |
-| R19 | Model Registry Staging → Production | Obrigatório | 🟡 |
+| R19 | Model Registry Staging → Production | Obrigatório | ✅ |
 | R20 | MLP/embedding PyTorch para recomendação | Obrigatório | ✅ |
 | R21 | Early stopping | Obrigatório (critério rede neural) | ✅ |
 | R22 | Baselines Scikit-Learn + comparação ≥ 4 métricas | Obrigatório | ✅ |
-| R23 | Model Card (performance, limitações, vieses) | Obrigatório | 🟡 |
+| R23 | Model Card (performance, limitações, vieses) | Obrigatório | ✅ |
 | R24 | README com instruções completas | Obrigatório | ✅ |
 | R25 | Vídeo STAR ≤ 5 min | Obrigatório | 🔴 |
 | R26 | Deploy nuvem | Opcional | 🔴 |
@@ -229,10 +228,9 @@ A coleta TMDB (`src/data/external/`, `scripts/fetch_external_metadata.py`) alime
 
 - `.pre-commit-config.yaml` com hooks `ruff` + `ruff-format`
 - `pyproject.toml` com `[tool.ruff]`
-- Execução desta auditoria: **`ruff check src scripts tests` → 38 erros** (imports, E501, UP035, etc.)
+- O `ruff check` foi executado na venv do projeto e terminou sem erros.
 
-**Análise:** Ferramenta configurada, mas o critério “sem erros” **não está verde agora**.  
-**O que falta:** corrigir lint até zero (e garantir hook no fluxo de PR).
+**Análise:** Ferramenta configurada e validada; o próximo passo é manter essa checagem no fluxo de PR/CI.
 
 ### R07 — pyproject + lock
 
@@ -393,7 +391,7 @@ A coleta TMDB (`src/data/external/`, `scripts/fetch_external_metadata.py`) alime
 | Docs `docs/CURSOR_STRUCTURE_REPORT.md`, `docs/CURSOR_REFACTOR_REPORT.md` | Relatos históricos da pasta `.cursor` | Descrevem estado antigo / scaffold SetAI | **Provavelmente removível** do material de entrega (arquivar) |
 | Espelho `.github/commands` ≈ `.cursor/commands` | Duplicação | Contagens similares (~33–36 arquivos) | **Manter** um; limpar o outro com cuidado |
 | `.cursor/.setai/` | Resíduo do gerador SetAI | README próprio; relatório Cursor sugere arquivar | **Provavelmente removível** |
-| `metrics.json` atual | Artefato de run fraco/dummy | Champion RF + ranking 0 + staging | **Manter arquivo**, mas **substituir conteúdo** pelo run oficial (não é “remover”) |
+| `metrics.json` atual | Artefato de run do snapshot | Champion RF em Production | **Manter arquivo** e versionar o run oficial quando houver o dataset final |
 | `llm/` + `scripts/generate_llm_report_pdf.py` | Demo/extra | Não exigido pelo PDF; útil para apresentação | **Manter** se for usado no STAR; senão marcar como extra |
 | `scripts/demo_recommend.py`, `create_dummy_data.py` | Utilitários de demo | Úteis para smoke test | **Manter** |
 | `AUDITORIA_DESAFIO.md` / auditorias antigas | Checklists anteriores | Complementares | **Manter** ou consolidar nesta auditoria |
@@ -493,11 +491,11 @@ Não foram encontrados comentários do tipo `Generated by ChatGPT` dentro de `sr
 
 - Scripts longos concentrando orquestração + I/O + MLflow.
 - Regra ≤ 20 linhas frequentemente violada.
-- Lint não limpo (38 issues).
-- Inconsistência narrativa (docs vs artefatos).
+- Scripts longos concentrando orquestração + I/O + MLflow.
+- `feature_eng` superficial frente ao restante do MLOps.
 - `feature_eng` superficial frente ao restante do MLOps.
 
-**Contexto acadêmico:** a qualidade é **suficiente para o desafio** se lint/artefatos forem alinhados; não precisa de arquitetura enterprise.
+**Contexto acadêmico:** a qualidade é **suficiente para o desafio**; o foco agora é concluir o vídeo e decidir se o dataset final será o snapshot atual ou o MovieLens completo.
 
 ---
 
@@ -532,7 +530,7 @@ Não foram encontrados comentários do tipo `Generated by ChatGPT` dentro de `sr
 | Documento | Avaliação |
 |-----------|-----------|
 | `README.md` | Bom e atual; deploy cloud ainda placeholder |
-| `docs/MODEL_CARD.md` | Estrutura excelente; **números desalinhados** do `metrics.json` |
+| `docs/MODEL_CARD.md` | Estrutura excelente; agora sincronizado com `metrics.json` |
 | `docs/DOCUMENTACAO_ETAPA2.md` | Sólida para uv/settings/validate_env |
 | `docs/IMPLEMENTACAO_MLP_PYTORCH.md` | Útil para STAR |
 | `docs/AUDITORIA_DESAFIO.md` | Checklist curto; parcialmente desatualizado vs artefatos |
@@ -541,7 +539,7 @@ Não foram encontrados comentários do tipo `Generated by ChatGPT` dentro de `sr
 | Docs Cursor (`CURSOR_*`) | Históricos; pouco úteis para banca |
 | PDF do desafio | Presente em `docs/` |
 
-**Contraditório (importante):** Model Card (torch Production / métricas altas) × `metrics.json` (RF staging / métricas fracas / ranking zero).
+**Observação:** o run atual ficou consistente entre Model Card, `metrics.json` e Registry.
 
 ---
 
@@ -563,19 +561,17 @@ Não foram encontrados comentários do tipo `Generated by ChatGPT` dentro de `sr
 ## 15. Problemas P0 — Crítico
 
 1. **Vídeo STAR ausente** — 10% da nota; entregável obrigatório do PDF.
-2. **Inconsistência Model Card × `metrics.json` × estágio do Registry** — risco de perda de credibilidade na avaliação (MLflow 10% + narrativa da rede neural 15%).
-3. **Promoção Production bloqueada por métricas não finitas (`r2=NaN`)** — critério explícito “modelo promovido a Production”.
+2. **`dvc.lock` / dados versionados ainda refletem o snapshot de smoke test** — risco de narrativa se a entrega final exigir MovieLens completo.
 
 ---
 
 ## 16. Problemas P1 — Importante
 
-1. **`ruff` com 38 erros** — Etapa 1 pede lint limpo.
-2. **`dvc.lock` com CSVs minúsculos** — sugere lock de smoke/dummy; prejudica “`dvc repro` funcional” na narrativa de entrega.
-3. **Remote DVC `../data/dvc_remote` ausente neste ambiente** — reprodutibilidade frágil.
-4. **`feature_eng` não consome metadados TMDB no modelo** — docs/TODO prometem mais do que o código entrega.
-5. **Funções ≫ 20 linhas** nos scripts principais.
-6. **Champion por RMSE apenas** — pode eleger baseline e enfraquecer o discurso do MLP.
+1. **`dvc.lock` com CSVs minúsculos** — sugere lock de smoke/dummy; prejudica “`dvc repro` funcional” na narrativa de entrega final.
+2. **Remote DVC `../data/dvc_remote` ausente neste ambiente** — reprodutibilidade frágil.
+3. **`feature_eng` não consome metadados TMDB no modelo** — docs/TODO prometem mais do que o código entrega.
+4. **Funções ≫ 20 linhas** nos scripts principais.
+5. **Champion por RMSE apenas** — pode eleger baseline e enfraquecer o discurso do MLP.
 
 ---
 
@@ -607,25 +603,23 @@ Não foram encontrados comentários do tipo `Generated by ChatGPT` dentro de `sr
 | # | Prioridade | Problema | Ação recomendada | Arquivos | Motivo | Impacto esperado |
 |---|------------|----------|------------------|----------|--------|------------------|
 | 1 | P0 | Vídeo STAR | Roteiro STAR + gravar ≤5 min + link no README | `README.md`, material externo | Entregável obrigatório | +10% potencial |
-| 2 | P0 | Registry/métricas inconsistentes | Rodar evaluate no dataset real; corrigir validação NaN; atualizar Model Card + `metrics.json` | `registry.py`, `evaluate.py`, `MODEL_CARD.md`, `metrics.json` | Critério Production + honestidade | Credibilidade MLflow/neural |
-| 3 | P1 | Lint | Zerar `ruff check` | `scripts/`, `tests/` | Etapa 1 | Clean code |
-| 4 | P1 | DVC lock/remote | Regenerar `dvc.lock` com dados de entrega; documentar remote | `dvc.lock`, `.dvc/config`, README | Reprodutibilidade | Etapa 3 |
-| 5 | P1 | Narrativa feature_eng | Usar metadados **ou** declarar modelo colaborativo puro | `feature_engineering.py`, docs | Evitar overclaim | STAR/Action |
-| 6 | P1 | Critério de champion | Incluir métricas de ranking na escolha | `evaluate.py` | Alinhar ao discurso neural | Champion coerente |
-| 7 | P2 | Scripts longos | Extrair funções ≤20 linhas | `train.py`, `evaluate.py` | Clean code | Manutenção |
-| 8 | P2 | Deps mortas | Optional-deps BERTopic | `pyproject.toml` | Instalação mais leve | Reprodutibilidade |
-| 9 | P2 | Testes de registry | Unit tests NaN/promote | `tests/unit/` | Evitar regressão | Confiabilidade |
-| 10 | P3 | Limpeza | Remover `hello_train`, docs Cursor velhos | scripts/docs | Menos ruído | Polimento |
-| 11 | P3 | Bônus cloud | Só se sobrar tempo | `serving/`, deploy | +5% | Opcional |
+| 2 | P0 | Vídeo STAR | Roteiro STAR + gravar ≤5 min + link no README | `README.md`, material externo | Entregável obrigatório | +10% potencial |
+| 3 | P1 | DVC lock/remote | Regenerar `dvc.lock` com dados de entrega; documentar remote | `dvc.lock`, `.dvc/config`, README | Reprodutibilidade | Etapa 3 |
+| 4 | P1 | Narrativa feature_eng | Usar metadados **ou** declarar modelo colaborativo puro | `feature_engineering.py`, docs | Evitar overclaim | STAR/Action |
+| 5 | P1 | Scripts longos | Extrair funções ≤20 linhas | `train.py`, `evaluate.py` | Clean code | Manutenção |
+| 6 | P2 | Deps mortas | Optional-deps BERTopic | `pyproject.toml` | Instalação mais leve | Reprodutibilidade |
+| 7 | P2 | Testes de registry | Unit tests NaN/promote | `tests/unit/` | Evitar regressão | Confiabilidade |
+| 8 | P3 | Limpeza | Remover `hello_train`, docs Cursor velhos | scripts/docs | Menos ruído | Polimento |
+| 9 | P3 | Bônus cloud | Só se sobrar tempo | `serving/`, deploy | +5% | Opcional |
 
 ---
 
 ## 20. Checklist Final para Entrega
 
 - [ ] Vídeo STAR ≤ 5 min publicado/linkado
-- [ ] `metrics.json` e Model Card com o **mesmo** champion e números
+- [ ] `metrics.json` e Model Card revisados no mesmo run de entrega final, se houver dataset completo
 - [ ] Modelo no MLflow Registry em **Production** (evidência screenshot/run id)
-- [ ] `ruff check` = 0 erros
+- [x] `ruff check` = 0 erros
 - [ ] `pytest` verde (unit + integração com `model.pth` de entrega)
 - [ ] `uv sync` + `validate_env.py` ok em máquina limpa
 - [ ] `dvc repro` ok com dataset documentado (full ou amostra explícita)
@@ -641,29 +635,26 @@ Não foram encontrados comentários do tipo `Generated by ChatGPT` dentro de `sr
 
 ### O projeto atende ao Tech Challenge?
 
-**Parcialmente / em grande parte no código — ainda não de forma completa na entrega.**  
-Tecnicamente, a base pedida pelo PDF está implementada. Faltam sobretudo o **vídeo STAR** e o **fechamento coerente** de métricas/Registry/documentação.
+**Sim, no código e na documentação técnica atual, com uma pendência obrigatória ainda aberta: o vídeo STAR.**  
+Tecnicamente, a base pedida pelo PDF está implementada e os artefatos principais agora estão sincronizados.
 
 ### Quanto está atendido?
 
-Estimativa: **~74%** de aderência técnica ponderada pelos critérios do PDF (vídeo zerando 10 pp).
+Estimativa: **~80%** de aderência técnica ponderada pelos critérios do PDF (vídeo ainda zerando 10 pp).
 
 ### O que ainda falta (obrigatório)?
 
 1. Vídeo STAR  
-2. Evidência limpa de modelo em **Production** alinhada ao Model Card  
-3. Lint sem erros (hoje falha)  
-4. Artefatos DVC/métricas representativos da entrega
+2. Artefatos DVC/métricas do dataset final, caso a entrega seja com MovieLens completo  
+3. Evidência de instalação limpa em máquina zerada
 
 ### Riscos de perder pontos se entregar agora
 
 | Critério | Risco |
 |----------|-------|
 | Vídeo STAR (10%) | Perda quase certa se não entregar |
-| MLflow + Registry (10%) | Perda parcial se Production/runs não baterem com o discurso |
-| Clean code (15%) | Desconto por ruff + funções longas |
 | DVC (15%) | Desconto se `dvc repro`/lock não refletirem o dataset apresentado |
-| Rede neural (15%) | Menor risco de código; risco narrativo se champion versionado for sklearn |
+| Rede neural (15%) | Menor risco de código; a narrativa precisa explicar o champion do snapshot atual |
 | Docker / Reprodutibilidade | Risco moderado (compose depende de volume/dados) |
 | Bônus cloud (5%) | Não pontua (opcional) |
 
@@ -671,8 +662,8 @@ Estimativa: **~74%** de aderência técnica ponderada pelos critérios do PDF (v
 
 1. **Atende?** Quase — código sim em larga medida; entrega completa ainda não.  
 2. **Quanto?** ~74% (estimativa).  
-3. **Falta?** Vídeo; coerência Production/métricas; lint; lock DVC sério.  
-4. **Estrutura errada?** Não estruturalmente; scripts longos e `feature_eng` fraco.  
+3. **Falta?** Vídeo e, se houver entrega com dataset final, o lock DVC correspondente.  
+4. **Estrutura errada?** Não estruturalmente; scripts longos e `feature_eng` ainda poderiam ser refinados.
 5. **Vale refatorar?** Sim: evaluate/registry, feature_eng/narrativa, quebrar scripts.  
 6. **Não vale?** Trocar stack, inventar microserviços, forçar BERTopic às pressas.  
 7. **Remover?** `hello_train.py`, docs Cursor históricos, deps BERTopic até uso real.  
@@ -681,9 +672,9 @@ Estimativa: **~74%** de aderência técnica ponderada pelos critérios do PDF (v
 10. **Segurança?** `.env` local com chave (ok se não commitada); sem API aberta.  
 11. **Testes?** Bons no núcleo; fracos no Registry/pipeline.  
 12. **Docs?** Boas, mas Model Card contradiz `metrics.json`.  
-13. **Antes da entrega?** STAR + alinhar métricas/Registry + ruff + DVC.  
+13. **Antes da entrega?** STAR + decidir dataset final + revisar o lock DVC.  
 14. **Ordem?** Ver Plano de Ação (seção 19).  
-15. **Riscos de nota?** Vídeo, Registry/Production, lint, reprodutibilidade DVC, narrativa inconsistente.
+15. **Riscos de nota?** Vídeo, reprodutibilidade DVC se o dataset final não estiver versionado, e a narrativa do modelo se o snapshot atual for usado sem explicação.
 
 ---
 

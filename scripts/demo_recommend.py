@@ -23,8 +23,8 @@ from torch.utils.data import DataLoader, TensorDataset
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from models.factory import create_model
-from training.seeds import set_global_seeds
+from models.factory import create_model  # noqa: E402
+from training.seeds import set_global_seeds  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Synthetic catalogue
@@ -192,7 +192,10 @@ def main() -> int:
     n_users = len(user_to_idx)
     n_movies = len(movie_to_idx)
 
-    print(f"\nSynthetic data: {len(df)} ratings  |  {n_users} users  |  {n_movies} movies\n")
+    print(
+        f"\nSynthetic data: {len(df)} ratings  |  {n_users} users  |  "
+        f"{n_movies} movies\n"
+    )
 
     # --- Model ---
     model = create_model(
@@ -229,7 +232,7 @@ def main() -> int:
         print(f"  Recomendado : {', '.join(rec_titles) or '(sem candidatos)'}")
 
         for rank, (movie_idx, title) in enumerate(
-            zip(rec_idxs, rec_titles), start=1
+            zip(rec_idxs, rec_titles, strict=False), start=1
         ):
             records.append(
                 {

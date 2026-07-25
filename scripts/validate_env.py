@@ -12,10 +12,9 @@ from __future__ import annotations
 
 import importlib
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable
-
 
 # ---------------------------------------------------------------------------
 # Result container
@@ -94,7 +93,9 @@ def _import_check(
             ok, msg = True, str(version)
         report.add(CheckResult(name=f"import {package}", passed=ok, message=msg))
     except ImportError as exc:
-        report.add(CheckResult(name=f"import {package}", passed=False, message=str(exc)))
+        report.add(
+            CheckResult(name=f"import {package}", passed=False, message=str(exc))
+        )
 
 
 def check_required_packages(report: Report) -> None:
@@ -130,7 +131,10 @@ def check_cuda(report: Report) -> None:
                 name="CUDA (optional)",
                 passed=True,
                 message=(
-                    "available — " + device_name if available else "not available (CPU mode)"
+                    "available — "
+                    + device_name
+                    if available
+                    else "not available (CPU mode)"
                 ),
             )
         )

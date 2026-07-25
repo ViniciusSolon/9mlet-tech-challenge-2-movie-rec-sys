@@ -69,7 +69,8 @@ def test_score_cases_match_golden(real_model: torch.nn.Module, cases: dict) -> N
 
         if not (expected["min"] <= score <= expected["max"]):
             failures.append(
-                f"{case['id']}: score={score:.4f} fora de [{expected['min']}, {expected['max']}]"
+                f"{case['id']}: score={score:.4f} fora de "
+                f"[{expected['min']}, {expected['max']}]"
             )
             continue
 

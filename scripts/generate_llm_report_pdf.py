@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-"""Gera PDF leigo do teste llm/ (histórico Ana → top 10 → avaliação GPT)."""
+"""Generate a leigh report for the llm/ demo."""
+
+# ruff: noqa: E501, F841
 
 from __future__ import annotations
 

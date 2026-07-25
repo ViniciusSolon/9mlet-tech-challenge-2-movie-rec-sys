@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 import tempfile
 from pathlib import Path
@@ -21,6 +20,7 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "configs"))
 
 from settings import load_settings  # noqa: E402
+
 from data.splits import assert_temporal_order, temporal_train_test_split  # noqa: E402
 from evaluation.metric_strategy import compute_metrics  # noqa: E402
 from evaluation.metrics import average_metrics  # noqa: E402
