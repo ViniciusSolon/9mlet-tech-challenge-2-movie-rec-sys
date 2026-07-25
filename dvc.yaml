@@ -1,20 +1,26 @@
 stages:
   preprocess:
-    cmd: python scripts/preprocess.py --strategy ${preprocess.strategy}
+    cmd: >-
+      python scripts/prepare_raw_aliases.py
+      && python scripts/preprocess.py --strategy ${preprocess.strategy}
     deps:
+      - scripts/prepare_raw_aliases.py
       - scripts/preprocess.py
-      - data/raw/ratings.csv
+      - src/data/raw_aliases.py
+      - src/data/external/movielens_io.py
     params:
       - preprocess.strategy
     outs:
       - data/processed/preprocessed_ratings.parquet
 
   enrich_metadata:
-    cmd: python scripts/enrich_metadata.py
+    cmd: >-
+      python scripts/prepare_raw_aliases.py
+      && python scripts/enrich_metadata.py
     deps:
+      - scripts/prepare_raw_aliases.py
       - scripts/enrich_metadata.py
-      - data/raw/movies.csv
-      - data/raw/links.csv
+      - src/data/external/movielens_io.py
       - data/processed/movie_metadata.parquet
     outs:
       - data/processed/enriched_metadata.parquet
@@ -32,6 +38,7 @@ stages:
     cmd: python scripts/train.py --epochs ${train.epochs} --lr ${train.lr} --batch-size ${train.batch_size} --embedding-dim ${train.embedding_dim} --hidden-dim ${train.hidden_dim} --dropout ${train.dropout} --model-type ${train.model_type} --val-split ${train.val_split} --patience ${train.patience} --seed ${train.seed}
     deps:
       - scripts/train.py
+      - src/training/loop.py
       - data/processed/features_ratings.parquet
     params:
       - train.epochs
@@ -51,6 +58,8 @@ stages:
     cmd: python scripts/evaluate.py --model-type ${train.model_type} --experiment-name ${mlflow.experiment_name} --registry-model-name ${mlflow.registry_model_name}
     deps:
       - scripts/evaluate.py
+      - src/evaluation/runner.py
+      - src/evaluation/champion.py
       - data/processed/features_ratings.parquet
       - models/model.pth
     params:

@@ -1,7 +1,7 @@
 # Model Card — Movie Rec Sys (MovieLens 20M)
 
 **Projeto:** FIAP Tech Challenge Fase 02 — sistema de recomendação  
-**Modelo em produção (Registry):** `sklearn_random_forest`  
+**Modelo em produção (Registry):** `torch_mlp`  
 **Arquiteturas candidatas:** `torch_mlp` (padrão), `torch_embedding`  
 **Baselines:** `most_popular`, `sklearn_knn`, `sklearn_random_forest`  
 **Última atualização:** 2026-07-25  
@@ -19,7 +19,7 @@ Sistema de recomendação **colaborativo** treinado com **PyTorch**, analogia e-
 | `movieId` | Produto (SKU) |
 | `rating` + `timestamp` | Interação / engajamento |
 
-### `TorchMLPRecommender` (champion típico)
+### `TorchMLPRecommender` (modelo central / champion)
 
 Embeddings de usuário e item concatenados → MLP (2 camadas ocultas, ReLU, Dropout) → score de rating.
 
@@ -54,7 +54,7 @@ Código: `src/models/torch_mlp.py`, `src/models/torch_embedding.py`, `scripts/tr
 | **Arquivos** | `rating(s).csv`, `movie(s).csv`, `link(s).csv` — nomes GroupLens **ou** Kaggle |
 | **Metadados** | `data/processed/movie_metadata.parquet` (TMDB, etapa de scraping) |
 | **Feedback** | Explícito (estrelas); limiar implícito configurável (`rating ≥ 4`) |
-| **Features no modelo neural atual** | `user_idx`, `movie_idx` (IDs contíguos); metadados TMDB disponíveis no pipeline de enrich |
+| **Features no modelo neural atual** | `user_idx`, `movie_idx` (IDs contíguos); colunas de conteúdo podem ser anexadas no parquet |
 
 ### Política de split
 
@@ -72,60 +72,58 @@ Regra de negócio: sem leakage de futuro → passado (`assert_temporal_order`).
 
 Avaliadas em hold-out temporal (`scripts/evaluate.py`, jul/2026), com **≥ 4 métricas** exigidas pelo desafio.
 
-### Leitura leiga (o que cada número responde)
+### Leitura leiga
 
 | Métrica | Em português simples | Melhor quando… |
 |---------|----------------------|----------------|
-| **RMSE** | “Em média, quanto erramos a nota (com peso maior nos erros grandes)?” Notas vão de ~0,5 a 5. | **Menor** |
-| **MAE** | “Em média, erramos a nota em quantos pontos?” Ex.: MAE 0,6 ≈ erramos ~0,6 estrela. | **Menor** |
-| **Precision@10 (P@10)** | “Dos 10 filmes que sugerimos, quantos o usuário realmente gostaria (nota ≥ 4)?” Ex.: 0,17 ≈ ~1,7 acertos no top 10. | **Maior** |
-| **Recall@10 (R@10)** | “Dos filmes que ele gostaria no período de teste, quantos caíram no nosso top 10?” | **Maior** |
-| **NDCG@10** | “A ordem da lista está boa?” Acertar no 1º lugar vale mais que acertar no 10º. | **Maior** |
-| **Hit Rate@10 (HR@10)** | “Em quantos % dos usuários o top 10 tem **pelo menos 1** filme que ele gostaria?” Ex.: 0,63 = 63%. | **Maior** |
+| **RMSE** | Quanto erramos a nota (penaliza erros grandes). | **Menor** |
+| **MAE** | Erro médio absoluto em estrelas. | **Menor** |
+| **Precision@10** | Dos 10 sugeridos, quantos o usuário gostaria (nota ≥ 4)? | **Maior** |
+| **Recall@10** | Dos filmes que ele gostaria no teste, quantos entraram no top 10? | **Maior** |
+| **NDCG@10** | A ordem da lista está boa? | **Maior** |
+| **Hit Rate@10** | Em quantos % dos usuários o top 10 tem ≥ 1 acerto? | **Maior** |
 
-### Resultados do run atual (snapshot do repositório)
+### Resultados do run atual (MovieLens completo no workspace)
 
 | Modelo | RMSE ↓ | MAE ↓ | P@10 ↑ | R@10 ↑ | NDCG@10 ↑ | HR@10 ↑ |
 |--------|--------|-------|--------|--------|-----------|---------|
-| **sklearn_random_forest (champion)** | **1,69** | **1,69** | — | — | — | — |
-| torch_mlp | 1,789 | 1,789 | 0,000 | 0,000 | 0,000 | 0,000 |
-| most_popular | 2,000 | 2,000 | — | — | — | — |
-| sklearn_knn | 2,250 | 2,250 | — | — | — | — |
+| **torch_mlp (champion)** | **0,780** | **0,600** | **0,150** | **0,037** | **0,160** | **0,610** |
+| most_popular | 0,887 | 0,691 | — | — | — | — |
+| sklearn_random_forest | 0,906 | 0,720 | — | — | — | — |
+| sklearn_knn | 0,948 | 0,760 | — | — | — | — |
 
-> O snapshot do repositório usa uma amostra pequena de validação, então o ranking @K do modelo neural ficou zerado neste run. Baselines foram avaliados em RMSE/MAE, e o campeão atual foi o `sklearn_random_forest`.
+> Ranking @10 do neural: até 200 usuários no hold-out. Baselines: RMSE/MAE em amostra (≤200k treino / ≤50k teste).
 
-**Champion no Registry:** `sklearn_random_forest` → `movie-rec-sys` **v2 / Production**  
-**Run MLflow:** `3c389798764241ec8efdc5a6513aff7d` · split temporal OK · `metrics.json`
+**Champion no Registry:** `torch_mlp` → `movie-rec-sys` **v2 / Production**  
+**Run MLflow:** `a6845d82d6a54901a1f5d1e5a9d8f5d2` · split temporal OK · `metrics.json`
 
-### Conclusão (para o time / vídeo STAR)
+### Conclusão (para o vídeo STAR)
 
-1. No snapshot atual, o melhor RMSE/MAE ficou com o **Random Forest**, mas o `torch_mlp` segue como a arquitetura neural principal do projeto.  
-2. O ranking @10 do modelo neural ficou zerado nesse run pequeno, o que é esperado em hold-out reduzido e com sinal colaborativo puro.  
-3. Precision/Recall/NDCG continuam modestos; há espaço para incorporar mais features de conteúdo (TMDB/BERTopic).  
-4. Para o desafio: há um modelo PyTorch treinado, baselines comparados em múltiplas métricas e um campeão registrado em Production neste snapshot.
+1. O **MLP PyTorch** é o modelo central e o champion em Production.  
+2. Baselines ficam atrás em RMSE neste run.  
+3. HR@10 ≈ 61% na amostra de ranking.  
+4. BERTopic/conteúdo no forward são opcionais (extra `topics`) e **não** exigidos pelo PDF.
 
 ---
 
 ## 4. Limitações
 
-| Limitação | Impacto | Mitigação atual / futura |
-|-----------|---------|--------------------------|
-| **Cold start (usuário novo)** | Sem histórico → embeddings fracos | Fallback natural: MostPopular; conteúdo TMDB ainda não entra no forward neural |
-| **Cold start (item novo)** | Poucos ratings | Metadados TMDB no parquet; integração BERTopic/conteúdo no MLP ainda parcial |
-| **Popularidade / long-tail** | Itens populares dominam | MostPopular expõe o viés; modelo neural personaliza, mas pode herdar skew |
-| **Colaborativo puro** | Sem sinal de sinopse no score | Pipeline `enrich_metadata` pronto; próximo passo: features de conteúdo no treino |
-| **Escala 20M** | Treino completo é custoso | Dev com `create_dummy_data.py` / amostra; produção via Docker + DVC |
-| **Coverage TMDB** | ~1% sem sinopse / IDs ausentes | Relatório em `docs/METADATA_COVERAGE_REPORT.md` |
+| Limitação | Impacto | Mitigação |
+|-----------|---------|-----------|
+| Cold start (usuário novo) | Embeddings fracos | Fallback MostPopular |
+| Cold start (item novo) | Poucos ratings | Metadados TMDB no parquet |
+| Popularidade / long-tail | Skew de itens famosos | MostPopular expõe o viés |
+| Score colaborativo puro | Sem sinopse no forward | Enrich pronto; conteúdo anexável |
+| Escala 20M | Custo de treino/eval | Sampling + Docker + DVC |
 
 ---
 
 ## 5. Vieses e considerações éticas
 
 - IDs MovieLens são **pseudônimos**; não há PII explícita no dataset.  
-- Recomendações podem reforçar **vieses de popularidade** e de catálogo ocidental (idioma/mercado TMDB).  
-- Não usar o modelo para decisões sensíveis (crédito, emprego, etc.).  
-- Não logar históricos completos de usuário em produção (ver regras de segurança do projeto).  
-- Analogia e-commerce é **didática**: validar fairness se aplicado a produtos reais.
+- Recomendações podem reforçar **vieses de popularidade** e de catálogo ocidental.  
+- Não usar o modelo para decisões sensíveis.  
+- Analogia e-commerce é **didática**.
 
 ---
 
@@ -133,28 +131,28 @@ Avaliadas em hold-out temporal (`scripts/evaluate.py`, jul/2026), com **≥ 4 m�
 
 | Passo | Comando / artefato |
 |-------|--------------------|
-| Ambiente | `uv sync` (+ `uv.lock` commitado) |
-| Config | `.env` a partir de `.env.example` + `configs/settings.py` |
+| Ambiente | `uv sync --extra dev` (+ `uv.lock`) |
+| Config | `.env` a partir de `.env.example` |
 | Validação | `python scripts/validate_env.py` |
-| Seeds | `params.yaml` → `train.seed` (padrão 42) |
-| Pipeline | `dvc repro` (stages: preprocess → enrich → feature_eng → train → evaluate) |
-| Docker | `docker compose run train` + MLflow em `http://localhost:5000` |
+| Seeds | `params.yaml` → `train.seed` (42) |
+| Pipeline | `dvc repro` |
+| Docker | `docker compose run train` + MLflow `:5000` |
 | Registry | Staging → Production via `MLflowRegistryManager` |
-| Docs | `docs/DOCUMENTACAO_ETAPA2.md`, `docs/IMPLEMENTACAO_MLP_PYTORCH.md` |
+
+**MLflow local:** prefira `MLFLOW_TRACKING_URI=sqlite:///mlflow.db` no `.env`. Use `http://localhost:5000` apenas com `docker compose up mlflow`.
 
 ---
 
 ## 7. Intended use
 
-**Uso pretendido:** demonstração acadêmica de pipeline MLOps de recomendação (treino, avaliação, registry).  
+**Uso pretendido:** demonstração acadêmica de pipeline MLOps de recomendação.  
 
-**Fora de escopo:** UI completa, auth de usuários, streaming em tempo real, deploy obrigatório em nuvem (bônus opcional do PDF).
+**Fora de escopo:** UI completa, auth, streaming em tempo real, deploy obrigatório em nuvem (bônus opcional).
 
 ---
 
 ## Referências
 
 - Enunciado: `docs/Tech Challenge Fase 02.pdf` / `docs/pdf_extract.txt`  
-- Auditoria de aderência: `docs/AUDITORIA_DESAFIO.md`  
-- Business rules: `.cursor/rules/business-rules.md`  
-- Template interno: `.cursor/commands/model-card-generator.md`
+- Auditoria: `AUDITORIA_TECH_CHALLENGE.md`  
+- Business rules: `.cursor/rules/business-rules.md`

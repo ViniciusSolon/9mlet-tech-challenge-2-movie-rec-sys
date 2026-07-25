@@ -90,8 +90,17 @@ cd 9mlet-tech-challenge-2-movie-rec-sys
 
 ### 2. Instalar dependências
 
+O projeto usa **`uv`** com `pyproject.toml` + `uv.lock` (equivalente ao Poetry pedido no enunciado).
+
 ```bash
-uv sync
+uv sync --extra dev
+```
+
+Extras opcionais:
+
+```bash
+uv sync --extra topics   # BERTopic / sentence-transformers (não exigido pelo PDF)
+uv sync --extra s3       # remote DVC em S3
 ```
 
 ### 3. Criar o arquivo `.env`
@@ -129,6 +138,18 @@ O pipeline completo está definido em `dvc.yaml` e segue esta ordem:
 
 `preprocess -> enrich_metadata -> feature_eng -> train -> evaluate`
 
+O remote local padrão é `./dvc-storage` (criado automaticamente pelo `validate_env.py`).
+
+Os stages `preprocess` / `enrich_metadata` chamam `scripts/prepare_raw_aliases.py` para aceitar nomes **GroupLens** (`ratings.csv`) ou **Kaggle** (`rating.csv`).
+
+Se você trocar os CSVs brutos e o DVC não invalidar o stage (deps de dados são resolvidas no script), force:
+
+```bash
+uv run python scripts/prepare_raw_aliases.py
+uv run dvc repro -f preprocess
+uv run dvc repro
+```
+
 Para reproduzir tudo:
 
 ```bash
@@ -146,7 +167,7 @@ docker compose up mlflow
 
 O serviço `train` executa o pipeline e o serviço `mlflow` expõe a interface de rastreamento.
 
-Fora do Docker, o projeto usa por padrão um backend SQLite local em `mlflow.db`, o que facilita a execução em máquina limpa sem depender de um servidor externo.
+Fora do Docker, o projeto usa por padrão um backend SQLite local em `mlflow.db` (`MLFLOW_TRACKING_URI=sqlite:///mlflow.db`). Só use `http://localhost:5000` se o serviço `mlflow` do compose estiver no ar.
 
 ## Execução manual
 

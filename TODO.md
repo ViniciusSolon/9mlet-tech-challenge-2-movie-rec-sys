@@ -6,7 +6,7 @@
 >
 > **Começar por:** [Bloco 0 — Fundação e Docker inicial](#bloco-0--fundação-e-docker-inicial), depois [Etapa 1 — Clean Code](#bloco-1--etapa-1-clean-code-disciplina-01). A [coleta TMDB](#etapa-de-scraping--coleta-de-metadados-imdbtmdb-após-etapa-1--clean-code) fica **após** a Etapa 1 (estrutura `src/` pronta).
 >
-> **Status (branch `feat/bloco5-mlp-pytorch-training`, jul/2026):** Blocos 0–2 + scraping + Model Card + refatoração de aderência ao PDF concluídos. **Pendência obrigatória de entrega:** vídeo STAR (6.5). Opcionais: BERTopic (4.4), ablation conteúdo (5.7), deploy nuvem (6.7).
+> **Status (branch `feat/bloco5-mlp-pytorch-training-model-card-llm`, jul/2026):** Blocos 0–5 + scraping + Model Card + correções pós-auditoria concluídos. **Pendência obrigatória de entrega:** vídeo STAR (6.5). Opcionais: BERTopic (`uv sync --extra topics`), deploy nuvem (6.7).
 
 ---
 
@@ -131,7 +131,7 @@ Isso fortalece o vídeo STAR e o Model Card (trade-off custo vs ganho de NDCG@K)
 - [x] Lock file commitado (`uv.lock`)
 - [x] `.env` + Pydantic Settings (`configs/settings.py`)
 - [x] `scripts/validate_env.py`
-- [ ] Instalação limpa em máquina nova (documentada; validar em PC/VM limpo)
+- [x] Instalação limpa em máquina nova (documentada; validar em PC/VM limpo)
 - [x] **Entregável:** `uv sync` do zero (ver `docs/DOCUMENTACAO_ETAPA2.md`)
 
 ### Etapa 3 — Docker + DVC + MLflow (15% + 15% + 10%) - (Fernando)

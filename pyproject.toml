@@ -12,6 +12,7 @@ dependencies = [
     # Config
     "pydantic-settings>=2.6",
     "pyyaml>=6.0",
+    "packaging>=24.0",
     # Scientific core (Etapa 4 — modelo + baselines)
     "numpy>=1.26",
     "scipy>=1.13",
@@ -22,16 +23,17 @@ dependencies = [
     "mlflow>=2.18",
     # Pipeline & data versioning (Etapa 3)
     "dvc>=3.56",
-    # Feature engineering — BERTopic (Etapa 3 / feature_eng stage)
-    "bertopic>=0.16",
-    "sentence-transformers>=3.0",
 ]
 
 [project.optional-dependencies]
 # DVC with cloud storage backends (Etapa 3 — remote opcional)
 s3 = ["dvc[s3]>=3.56"]
 gdrive = ["dvc[gdrive]>=3.56"]
-
+# Topic features (opcional — não exigido pelo PDF; use: uv sync --extra topics)
+topics = [
+    "bertopic>=0.16",
+    "sentence-transformers>=3.0",
+]
 dev = [
     "pre-commit>=3.7",
     "pytest>=8.3",
@@ -47,6 +49,9 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.uv]
+package = true
+
 [tool.ruff]
 line-length = 88
 target-version = "py311"
@@ -60,7 +65,7 @@ quote-style = "double"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "configs"]
 addopts = "-q --strict-markers"
 
 [tool.coverage.run]

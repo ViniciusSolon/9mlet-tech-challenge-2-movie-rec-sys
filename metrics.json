@@ -6,27 +6,27 @@
     },
     "comparison": [
         {
-            "model": "sklearn_random_forest",
-            "rmse": 1.69,
-            "mae": 1.69,
+            "model": "torch_mlp",
+            "rmse": 0.7799614397921041,
+            "mae": 0.5999588141989708,
+            "precision@10": 0.15,
+            "recall@10": 0.03688193255616165,
+            "ndcg@10": 0.16023249996987032,
+            "hit_rate@10": 0.61
+        },
+        {
+            "model": "most_popular",
+            "rmse": 0.8865833323714211,
+            "mae": 0.6905839620611955,
             "precision@10": null,
             "recall@10": null,
             "ndcg@10": null,
             "hit_rate@10": null
         },
         {
-            "model": "torch_mlp",
-            "rmse": 1.7892700731754303,
-            "mae": 1.7892700731754303,
-            "precision@10": 0.0,
-            "recall@10": 0.0,
-            "ndcg@10": 0.0,
-            "hit_rate@10": 0.0
-        },
-        {
-            "model": "most_popular",
-            "rmse": 2.0,
-            "mae": 2.0,
+            "model": "sklearn_random_forest",
+            "rmse": 0.9059318620132765,
+            "mae": 0.7201446667972117,
             "precision@10": null,
             "recall@10": null,
             "ndcg@10": null,
@@ -34,8 +34,8 @@
         },
         {
             "model": "sklearn_knn",
-            "rmse": 2.25,
-            "mae": 2.25,
+            "rmse": 0.9478450229336017,
+            "mae": 0.7596725,
             "precision@10": null,
             "recall@10": null,
             "ndcg@10": null,
@@ -45,56 +45,56 @@
     "candidates": [
         {
             "name": "most_popular",
-            "run_id": "abf3b1bfcbd442eb81945b17be391c48",
+            "run_id": "cc5fce273b7740cca1ee7c93158dd4ad",
             "artifact_path": "model",
             "metrics": {
-                "rmse": 2.0,
-                "mae": 2.0,
-                "mse": 4.0,
-                "r2": NaN
+                "rmse": 0.8865833323714211,
+                "mae": 0.6905839620611955,
+                "mse": 0.7860300052388137,
+                "r2": 0.08534585559277696
             }
         },
         {
             "name": "sklearn_knn",
-            "run_id": "ebce1b7731f641aab76039657ec946b4",
+            "run_id": "d3a2b7deffbb4ec7b023db7a5de5b3b6",
             "artifact_path": "model",
             "metrics": {
-                "rmse": 2.25,
-                "mae": 2.25,
-                "mse": 5.0625,
-                "r2": NaN
+                "rmse": 0.9478450229336017,
+                "mae": 0.7596725,
+                "mse": 0.8984101874999999,
+                "r2": -0.04542396078745581
             }
         },
         {
             "name": "sklearn_random_forest",
-            "run_id": "3c389798764241ec8efdc5a6513aff7d",
+            "run_id": "1c63d30257dd4d8f8351e1e18f70492b",
             "artifact_path": "model",
             "metrics": {
-                "rmse": 1.69,
-                "mae": 1.69,
-                "mse": 2.8560999999999996,
-                "r2": NaN
+                "rmse": 0.9059318620132765,
+                "mae": 0.7201446667972117,
+                "mse": 0.8207125386108423,
+                "r2": 0.0449879523628236
             }
         },
         {
             "name": "torch_mlp",
-            "run_id": "f243d11660bf4a948231903db023323d",
+            "run_id": "a6845d82d6a54901a1f5d1e5a9d8f5d2",
             "artifact_path": "model",
             "metrics": {
-                "rmse": 1.7892700731754303,
-                "mae": 1.7892700731754303,
-                "mse": 3.2014873947612097,
-                "r2": NaN,
-                "precision@10": 0.0,
-                "recall@10": 0.0,
-                "ndcg@10": 0.0,
-                "hit_rate@10": 0.0
+                "rmse": 0.7799614397921041,
+                "mae": 0.5999588141989708,
+                "mse": 0.6083398475625721,
+                "r2": 0.29211282130112615,
+                "precision@10": 0.15,
+                "recall@10": 0.03688193255616165,
+                "ndcg@10": 0.16023249996987032,
+                "hit_rate@10": 0.61
             }
         }
     ],
     "champion": {
-        "name": "sklearn_random_forest",
-        "run_id": "3c389798764241ec8efdc5a6513aff7d",
+        "name": "torch_mlp",
+        "run_id": "a6845d82d6a54901a1f5d1e5a9d8f5d2",
         "version": 2,
         "stage": "production"
     }

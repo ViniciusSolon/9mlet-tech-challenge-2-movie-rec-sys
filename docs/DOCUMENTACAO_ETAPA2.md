@@ -22,8 +22,9 @@ O `pyproject.toml` foi reestruturado para incluir **todas as dependências neces
 | Rede neural | `torch>=2.2` (via PyPI — compatível macOS Intel/ARM e Linux) | Etapa 4 — PyTorch |
 | Rastreamento | `mlflow>=2.18` | Etapa 3 — experimentos + registry |
 | Versionamento de dados | `dvc>=3.56` | Etapa 3 — pipeline DVC |
-| Engenharia de features | `bertopic>=0.16`, `sentence-transformers>=3.0` | Etapa 3 — `feature_eng` stage |
+| Engenharia de features (opcional) | `bertopic`, `sentence-transformers` via `uv sync --extra topics` | Extra `topics` — **não** exigido pelo PDF |
 | Dev | `pytest`, `pytest-cov`, `pytest-mock`, `ruff`, `pre-commit` | desenvolvimento |
+| Utilitário | `packaging` | comparação de versões em `validate_env.py` |
 | Opcional `s3` | `dvc[s3]` | Etapa 3 — remote S3 |
 | Opcional `gdrive` | `dvc[gdrive]` | Etapa 3 — remote GDrive |
 

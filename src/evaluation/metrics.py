@@ -62,9 +62,7 @@ def ndcg_at_k(recommended: list[int], relevant: set[int], k: int) -> float:
         return 0.0
     top_k = recommended[:k]
     dcg = sum(
-        1.0 / math.log2(rank + 2)
-        for rank, item in enumerate(top_k)
-        if item in relevant
+        1.0 / math.log2(rank + 2) for rank, item in enumerate(top_k) if item in relevant
     )
     ideal_hits = min(len(relevant), k)
     idcg = sum(1.0 / math.log2(rank + 2) for rank in range(ideal_hits))
@@ -89,7 +87,7 @@ def hit_rate_at_k(recommended: list[int], relevant: set[int], k: int) -> float:
 
 
 def rmse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    """Root Mean Squared Error.
+    """Root Mean Squared Error (delegates to scikit-learn).
 
     Args:
         y_true: Ground-truth ratings as a 1-D array.
@@ -98,11 +96,13 @@ def rmse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     Returns:
         RMSE as a float.
     """
-    return float(np.sqrt(np.mean((np.asarray(y_true) - np.asarray(y_pred)) ** 2)))
+    from sklearn.metrics import root_mean_squared_error  # noqa: PLC0415
+
+    return float(root_mean_squared_error(y_true, y_pred))
 
 
 def mae(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    """Mean Absolute Error.
+    """Mean Absolute Error (delegates to scikit-learn).
 
     Args:
         y_true: Ground-truth ratings as a 1-D array.
@@ -111,7 +111,9 @@ def mae(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     Returns:
         MAE as a float.
     """
-    return float(np.mean(np.abs(np.asarray(y_true) - np.asarray(y_pred))))
+    from sklearn.metrics import mean_absolute_error  # noqa: PLC0415
+
+    return float(mean_absolute_error(y_true, y_pred))
 
 
 def average_metrics(

@@ -28,6 +28,8 @@ mlflow.db
 *.db-journal
 .dvc/cache/
 .dvc/tmp/
+dvc-storage/*
+!dvc-storage/.gitkeep
 
 # Tools
 .ruff_cache/

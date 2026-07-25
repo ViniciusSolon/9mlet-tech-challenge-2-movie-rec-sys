@@ -1,58 +1,54 @@
 # Auditoria Técnica Completa — Tech Challenge Fase 02
 
-**Projeto:** `9mlet-tech-challenge-2-movie-rec-sys` (sistema de recomendação MovieLens 20M)  
-**Fonte de requisitos:** `docs/Tech Challenge Fase 02.pdf` (texto extraído em `docs/pdf_extract.txt`)  
+**Projeto:** `9mlet-tech-challenge-2-movie-rec-sys` (sistema de recomendação MovieLens)  
+**Fonte de requisitos:** `docs/Tech Challenge Fase 02.pdf` (texto em `docs/pdf_extract.txt`)  
 **Data da auditoria:** 2026-07-25  
-**Branch analisada:** `feat/bloco5-mlp-pytorch-training-model-card-llm` (`6d1f093`)  
-**Escopo:** análise somente leitura do repositório + execução de checagens não destrutivas (`pytest` unitário, `ruff check`).  
+**Branch analisada:** `feat/bloco5-mlp-pytorch-training-model-card-llm` (`c528344`)  
+**Escopo:** análise somente leitura + checagens não destrutivas (`ruff check`, `pytest` unitário, inspeção de artefatos).  
 **Regra seguida:** nenhum código, dependência, configuração ou estado de dados foi alterado; este arquivo Markdown é a única entrega desta tarefa.
 
 ---
 
 ## 1. Resumo Executivo
 
-O repositório **já cobre a maior parte dos requisitos técnicos obrigatórios do PDF**: estrutura `src/`/`tests/`/`configs/`, Factory + Strategy, `pyproject.toml` + `uv.lock`, `.env` + Pydantic Settings, `validate_env.py`, Dockerfile multi-stage, `docker-compose` (treino + MLflow), pipeline DVC com 5 stages, MLP PyTorch com early stopping, baselines Scikit-Learn, ≥ 4 métricas, tracking MLflow, Model Card e README.
+O repositório **já implementa a maior parte dos requisitos técnicos obrigatórios do PDF**: estrutura limpa, Factory + Strategy, `pyproject.toml` + `uv.lock`, Settings + `.env`, Dockerfile multi-stage, docker-compose (treino + MLflow), pipeline DVC com 5 stages, MLP/embedding PyTorch com early stopping, baselines Scikit-Learn, ≥ 4 métricas, MLflow tracking + Registry Staging→Production, Model Card e README.
 
-Os maiores riscos de nota na entrega atual são:
+**Veredito curto:** o projeto está **bem alinhado** ao desafio no código. O gap obrigatório mais claro para a entrega é o **vídeo STAR (10% da nota)**. Há também um risco técnico importante de nota: o que está **versionado no Git (`dvc.lock` + `metrics.json`)** ainda reflete um **smoke test minúsculo**, enquanto a máquina local já possui MovieLens em escala real (~19,7M ratings) e um `model.pth` treinado — ou seja, a evidência “oficial” do repositório e o workspace local **não estão sincronizados**.
 
-1. **Vídeo STAR (10% da nota) — não encontrado no repositório** (pendência explícita no `TODO.md`).
-2. **`dvc.lock` / dados versionados refletem um snapshot de smoke test por design** — os CSVs checked-in são pequenos e servem para reproduzir o pipeline no repositório; a entrega final com MovieLens completo exigirá novos dados.
-3. **Instalação limpa já foi provada em uma venv nova do workspace** — a validação passou em 25/25 checks após instalar as dependências no ambiente fresco.
-4. **Clean code estrutural ainda tem margem de melhoria** — os scripts de orquestração continuam mais longos do que o ideal, mas isso já não é um bloqueio funcional.
+Principais riscos se entregarem o estado atual do Git:
 
-**Veredito curto:** o projeto está **bem alinhado** ao desafio no código e na documentação alinhada ao run atual; o principal gap obrigatório que ainda falta é o **vídeo STAR**.
+1. **Vídeo STAR ausente** (obrigatório).
+2. **`metrics.json` / Model Card** com ranking @K zerado e champion = `sklearn_random_forest` (não o MLP) — narrativa frágil para banca.
+3. **`dvc.lock` com CSVs de ~100 bytes** — não prova o MovieLens completo no pipeline versionado.
+4. Clean code: **38 funções > 20 linhas** (regra explícita do PDF).
 
 ---
 
 ## 2. Nota / Aderência Geral
 
-### Estimativa técnica de aderência: **~80%**
+### Estimativa técnica de aderência: **~78%**
 
-Esta porcentagem **não é uma nota oficial da FIAP**. É uma estimativa ponderada pelos critérios do PDF (sem contar o bônus de nuvem como obrigatório).
+Esta porcentagem **não é a nota oficial da FIAP**. É uma estimativa ponderada pelos critérios do PDF (bônus de nuvem fora do obrigatório).
 
 | Critério (PDF) | Peso | Estimativa de atendimento | Contribuição |
 |----------------|------|---------------------------|--------------|
-| Clean code e estrutura | 15% | ~70% | 10,5 |
-| Reprodutibilidade | 15% | ~88% | 13,2 |
-| Docker | 15% | ~85% | 12,8 |
-| DVC + Pipeline | 15% | ~82% | 12,3 |
-| Rede neural (PyTorch) | 15% | ~88% | 13,2 |
-| MLflow + Registry | 10% | ~90% | 9,0 |
+| Clean code e estrutura | 15% | ~68% | 10,2 |
+| Reprodutibilidade | 15% | ~90% | 13,5 |
+| Docker | 15% | ~82% | 12,3 |
+| DVC + Pipeline | 15% | ~72% | 10,8 |
+| Rede neural (PyTorch) | 15% | ~85% | 12,8 |
+| MLflow + Registry | 10% | ~88% | 8,8 |
 | Vídeo STAR | 10% | ~0% | 0,0 |
-| **Subtotal obrigatório** | **95%** | — | **~74 / 95 ≈ 78%** |
+| **Subtotal obrigatório** | **95%** | — | **~68,4 / 95 ≈ 72%** |
 | Bônus cloud (opcional) | 5% | ~0% | 0 |
 
-**Ajuste qualitativo (+2 pp):** documentação técnica rica, testes unitários passando (52), Model Card sincronizada, pipeline completo em código → **~80%**.
+**Ajuste qualitativo (+6 pp):** testes unitários verdes (52), ruff limpo, Model Card honesta sobre o snapshot, instalação limpa documentada/validada → **~78%**.
 
 ### Classificação
 
-**Bem alinhado** (próximo de “muito bem alinhado” no código; falta principalmente o vídeo STAR para fechar a entrega).
+**Bem alinhado** (código quase pronto para entrega técnica; falta principalmente o vídeo STAR e sincronizar artefatos de evidência no repositório).
 
-**Principais motivos:**
-
-- Quase todos os módulos exigidos pelo PDF existem e se conectam no fluxo DVC.
-- O gap obrigatório mais claro é o **vídeo STAR**.
-- Gaps técnicos de entrega: **lock DVC representativo do dataset final**, **instalação limpa em máquina zerada**, **scripts longos**.
+**Critério usado:** pesos do PDF × grau de comprovação no código/artefatos versionados (não só o que existe na máquina do desenvolvedor).
 
 ---
 
@@ -78,14 +74,14 @@ Construir um **sistema de recomendação** (analogia e-commerce) com:
 
 ### Dataset
 
-Sugerido: e-commerce (Instacart, RetailRocket) **ou MovieLens**; mínimo **≥ 10.000 interações user–item**.  
-**Fato observado:** o projeto escolheu MovieLens 20M (aceitável pelo PDF).
+Sugerido: e-commerce **ou MovieLens**; mínimo **≥ 10.000 interações user–item**.  
+**Fato observado:** o projeto escolheu MovieLens (aceitável pelo PDF).
 
 ### Diferenciação usada nesta auditoria
 
 - **Obrigatório:** pedido explicitamente no PDF.
-- **Recomendado:** sugerido no PDF (“boas práticas”, dataset sugerido, etc.) sem peso isolado.
-- **Boa prática / plano interno:** itens do `TODO.md`, `.cursor/`, BERTopic, ablation, FastAPI — **não** exigidos literalmente pelo PDF.
+- **Recomendado:** sugerido no PDF sem peso isolado.
+- **Boa prática / plano interno:** `TODO.md`, BERTopic, ablation, FastAPI, CI — **não** exigidos literalmente pelo PDF.
 
 ---
 
@@ -95,36 +91,36 @@ Legenda: ✅ Atendido · 🟡 Parcial · 🔴 Não atendido · ⚪ Não comprova
 
 | # | Requisito | Tipo | Status |
 |---|-----------|------|--------|
-| R01 | Repo GitHub com estrutura limpa (`src/`, `tests/`, `data/`, `models/`, `configs/`) | Obrigatório | ✅ |
-| R02 | Clean code: módulos curtos, nomes descritivos, SOLID, type hints | Obrigatório | 🟡 |
+| R01 | Estrutura `src/`, `tests/`, `data/`, `models/`, `configs/` | Obrigatório | ✅ |
+| R02 | Clean code: SOLID, naming, type hints | Obrigatório | 🟡 |
 | R03 | Funções ≤ 20 linhas | Obrigatório (boas práticas) | 🟡 |
-| R04 | ≥ 1 design pattern (Factory / Strategy / Template) | Obrigatório | ✅ |
-| R05 | Type hints + docstrings Google em APIs públicas | Obrigatório | 🟡 |
+| R04 | ≥ 1 design pattern (Factory / Strategy) | Obrigatório | ✅ |
+| R05 | Type hints + docstrings Google | Obrigatório | 🟡 |
 | R06 | Ruff sem erros + pre-commit | Obrigatório | ✅ |
-| R07 | `pyproject.toml` Poetry/uv; deps prod/dev; lock commitado | Obrigatório | ✅ |
+| R07 | `pyproject.toml` Poetry/uv + lock | Obrigatório | ✅ |
 | R08 | `.dockerignore`, `.gitignore`, `.env.example` | Obrigatório | ✅ |
 | R09 | Commits semânticos | Obrigatório | ✅ |
 | R10 | `.env` + Pydantic Settings | Obrigatório | ✅ |
 | R11 | `scripts/validate_env.py` | Obrigatório | ✅ |
-| R12 | Instalação limpa (`poetry install` / equivalente `uv sync`) | Obrigatório | ✅ |
+| R12 | Instalação limpa | Obrigatório | ✅ |
 | R13 | Dockerfile multi-stage | Obrigatório | ✅ |
-| R14 | `docker-compose` treino + MLflow | Obrigatório | ✅ |
+| R14 | docker-compose treino + MLflow | Obrigatório | ✅ |
 | R15 | DVC init + remote + dataset versionado | Obrigatório | 🟡 |
-| R16 | Pipeline DVC ≥ 3 stages (`preprocess` → `feature_eng` → `train` → `evaluate`) | Obrigatório | ✅ |
-| R17 | MLflow: params, métricas, artefatos | Obrigatório | ✅ |
+| R16 | Pipeline DVC ≥ 3 stages | Obrigatório | ✅ |
+| R17 | MLflow params/métricas/artefatos | Obrigatório | ✅ |
 | R18 | ≥ 3 runs rastreados | Obrigatório (critério) | ✅ |
-| R19 | Model Registry Staging → Production | Obrigatório | ✅ |
-| R20 | MLP/embedding PyTorch para recomendação | Obrigatório | ✅ |
+| R19 | Registry Staging → Production | Obrigatório | ✅ |
+| R20 | MLP/embedding PyTorch | Obrigatório | ✅ |
 | R21 | Early stopping | Obrigatório (critério rede neural) | ✅ |
-| R22 | Baselines Scikit-Learn + comparação ≥ 4 métricas | Obrigatório | ✅ |
-| R23 | Model Card (performance, limitações, vieses) | Obrigatório | ✅ |
-| R24 | README com instruções completas | Obrigatório | ✅ |
+| R22 | Baselines sklearn + ≥ 4 métricas | Obrigatório | ✅ |
+| R23 | Model Card | Obrigatório | ✅ |
+| R24 | README completo | Obrigatório | ✅ |
 | R25 | Vídeo STAR ≤ 5 min | Obrigatório | 🔴 |
 | R26 | Deploy nuvem | Opcional | 🔴 |
-| R27 | PyTorch, sklearn, MLflow, DVC | Obrigatório (libs) | ✅ |
+| R27 | Libs PyTorch, sklearn, MLflow, DVC | Obrigatório | ✅ |
 | R28 | Seeds fixados | Obrigatório (boas práticas) | ✅ |
-| R29 | BERTopic / features de conteúdo | Plano interno (não PDF) | 🔴 / ➖ |
-| R30 | CI GitHub Actions | Boa prática interna | 🔴 / ➖ |
+| R29 | BERTopic / features de conteúdo no modelo | Plano interno | 🔴 / ➖ |
+| R30 | CI GitHub Actions | Boa prática | 🔴 / ➖ |
 
 ---
 
@@ -133,28 +129,28 @@ Legenda: ✅ Atendido · 🟡 Parcial · 🔴 Não atendido · ⚪ Não comprova
 ### Fluxo observado (entrada → saída)
 
 ```text
-data/raw/{ratings,movies,links}.csv
+data/raw/{rating(s),movie(s),link(s)}.csv
         │
         ▼
-scripts/preprocess.py  ──Strategy──► data/processed/preprocessed_ratings.parquet
+scripts/preprocess.py  ──Strategy──► preprocessed_ratings.parquet
         │
         ▼
-scripts/enrich_metadata.py + movie_metadata.parquet (TMDB cache)
+scripts/enrich_metadata.py + movie_metadata.parquet (TMDB pré-coletado)
         │
         ▼
-data/processed/enriched_metadata.parquet
+enriched_metadata.parquet
         │
         ▼
 scripts/feature_engineering.py  ──► features_ratings.parquet (user_idx, movie_idx)
         │
         ▼
-scripts/train.py (PyTorch MLP/embedding + early stopping + MLflow)
+scripts/train.py (PyTorch + early stopping + MLflow)
         │
         ▼
 models/model.pth
         │
         ▼
-scripts/evaluate.py (baselines + ranking@K + Registry + metrics.json)
+scripts/evaluate.py (baselines + @K + Registry + metrics.json)
 ```
 
 ### Mapa de componentes
@@ -169,13 +165,24 @@ scripts/evaluate.py (baselines + ranking@K + Registry + metrics.json)
 | Features / Serving | `src/features/`, `src/serving/` | **stubs vazios** |
 | Config | `configs/settings.py`, `params.yaml` | env + hiperparâmetros DVC |
 | Pipeline | `dvc.yaml`, `scripts/*.py` | stages DVC |
-| Demo LLM-ish | `llm/` | recomendação a partir de histórico textual (não é LLM generativo) |
+| Demo | `llm/` | recomendação a partir de histórico (não é LLM generativo) |
 | Governança IA | `.cursor/`, `.github/` (espelho) | regras/comandos para agentes |
 
 ### Relação entre partes
 
 O **coração avaliável do PDF** é: Factory de modelos + treino PyTorch + evaluate com baselines/métricas + DVC + Docker + MLflow.  
-A coleta TMDB (`src/data/external/`, `scripts/fetch_external_metadata.py`) alimenta `movie_metadata.parquet`, que entra no stage `enrich_metadata`. Porém o stage `feature_eng` **quase não usa** os campos de conteúdo no treino neural — só o mapeamento de IDs. Ou seja: enriquecimento existe no pipeline, mas o modelo atual continua **fortemente colaborativo (user/item embeddings)**.
+A coleta TMDB alimenta `movie_metadata.parquet` e entra em `enrich_metadata`, mas `feature_eng` **quase não usa** campos de conteúdo no treino neural — só mapeia IDs. O modelo atual é **fortemente colaborativo**.
+
+### Divergência workspace vs Git (fato crítico)
+
+| Artefato | No Git / `dvc.lock` | Na máquina local (workspace) |
+|----------|--------------------|------------------------------|
+| Ratings brutos | `ratings.csv` ~123 bytes (smoke) | `rating.csv` ~690 MB (~20M linhas) |
+| Features | ~5 KB no lock | ~217 MB, **19.761.138** linhas |
+| `models/model.pth` | ignorado pelo Git; lock aponta smoke | ~21 MB (treino real, val_mse ~0,75) |
+| `metrics.json` | smoke: RMSE ~1,7–2,25; @K = 0; champion RF | não regenerado no Git após treino local |
+
+**Inferência:** alguém treinou o MovieLens completo localmente, mas **não regenerou/committou** `dvc.lock` + `metrics.json` coerentes com esse run. A banca que clonar o repo verá o snapshot smoke, não o treino grande.
 
 ---
 
@@ -185,22 +192,19 @@ A coleta TMDB (`src/data/external/`, `scripts/fetch_external_metadata.py`) alime
 
 **Status:** ✅ Atendido  
 **Evidência:** `src/`, `tests/`, `data/`, `models/`, `configs/`, `scripts/`.  
-**Análise:** Atende Etapa 1 do PDF.  
 **O que falta:** nada crítico.
 
 ### R02 / R03 — Clean code e funções ≤ 20 linhas
 
 **Status:** 🟡 Parcial  
-**Evidência:**
+**Evidência (AST):** 38 funções com > 20 linhas, destacando:
 
-- Vários módulos `src/` são curtos e legíveis (`factory.py`, `metrics.py`, preprocessors).
-- Funções **acima de 20 linhas** detectadas por AST, por exemplo:
-  - `scripts/train.py::main` (~130 linhas)
-  - `scripts/evaluate.py::main` (~77), `_run_baselines` (~57), `_compute_ranking_metrics` (~50)
-  - `scripts/demo_recommend.py::main` (~76)
-  - `scripts/generate_llm_report_pdf.py::build` (~206)
+- `scripts/train.py::main` (~130 linhas)
+- `scripts/evaluate.py::main` (~77), `_run_baselines` (~57)
+- `scripts/generate_llm_report_pdf.py::build` (~206)
+- `src/data/external/tmdb_client.py::_request_json` (~60)
 
-**Análise:** O espírito de clean code está presente, mas a regra explícita de ≤ 20 linhas **não é cumprida de forma consistente**, sobretudo nos scripts de orquestração.  
+**Análise:** espírito de clean code presente em `src/`; a regra explícita ≤ 20 linhas **não é cumprida** de forma consistente nos scripts.  
 **O que falta:** extrair helpers nos scripts longos (sem overengineering).
 
 ### R04 — Design patterns
@@ -209,464 +213,372 @@ A coleta TMDB (`src/data/external/`, `scripts/fetch_external_metadata.py`) alime
 **Evidência:**
 
 - Factory: `src/models/factory.py` (`create_model`)
-- Strategy (preprocessadores): `src/data/preprocessors/base.py` + `explicit.py` / `implicit.py` + `registry.py`
-- Strategy adicional (métricas de rating): `src/evaluation/metric_strategy.py`
+- Strategy: `src/data/preprocessors/` + `src/evaluation/metric_strategy.py`
 
-**Análise:** Cumpre e até excede o mínimo (≥ 1 pattern).  
 **O que falta:** nada obrigatório.
 
 ### R05 — Type hints e docstrings Google
 
 **Status:** 🟡 Parcial  
-**Evidência:** APIs públicas em `src/` em geral tipadas e com docstrings; scripts nem sempre; alguns métodos (`fit`/`predict` de torch) têm tipagem frouxa (`Any`).  
-**O que falta:** homogeneizar scripts de pipeline e interfaces de modelo.
+**Evidência:** APIs públicas em `src/` tipadas; scripts nem sempre; `fit`/`predict` com tipagem frouxa (`Any`).  
+**O que falta:** homogeneizar scripts e interfaces de modelo.
 
-### R06 — Ruff sem erros + pre-commit
+### R06 — Ruff + pre-commit
 
-**Status:** 🟡 Parcial  
-**Evidência:**
-
-- `.pre-commit-config.yaml` com hooks `ruff` + `ruff-format`
-- `pyproject.toml` com `[tool.ruff]`
-- O `ruff check` foi executado na venv do projeto e terminou sem erros.
-
-**Análise:** Ferramenta configurada e validada; o próximo passo é manter essa checagem no fluxo de PR/CI.
+**Status:** ✅ Atendido  
+**Evidência:** `.pre-commit-config.yaml`; `ruff check src scripts tests configs` na `.venv` → **All checks passed**.
 
 ### R07 — pyproject + lock
 
 **Status:** ✅ Atendido  
-**Evidência:** `pyproject.toml` (prod + optional `dev`/`s3`/`gdrive`), `uv.lock` commitado.  
-**Nota:** o PDF menciona `poetry install` no entregável da Etapa 2; o projeto usa **uv** (também citado no PDF em “Poetry/uv”). Aceitável, desde que o README deixe isso explícito (já deixa).
+**Evidência:** `pyproject.toml` (prod + `dev`/`s3`/`gdrive`), `uv.lock`.  
+**Nota:** PDF cita `poetry install`; o projeto usa **uv** (também permitido no PDF).
 
 ### R08 — dockerignore / gitignore / env.example
 
 **Status:** ✅ Atendido  
-**Evidência:** `.dockerignore`, `.gitignore` (inclui `.env`), `.env.example`.
+**Evidência:** arquivos na raiz; `.env` no `.gitignore`.
 
 ### R09 — Commits semânticos
 
 **Status:** ✅ Atendido  
-**Evidência:** histórico local com prefixos `feat:`, `fix:`, `docs:`, `test:`, `build:`, `chore:`.
+**Evidência:** histórico com `feat:`, `fix:`, `docs:`, `test:`, `chore:`.
 
 ### R10 / R11 — Settings + validate_env
 
 **Status:** ✅ Atendido  
-**Evidência:** `configs/settings.py` (Pydantic Settings), `scripts/validate_env.py`.  
-**Observação:** `validate_env.py` importa `packaging.version`, que **não está declarado diretamente** em `pyproject.toml` (provavelmente transitivo). Funciona no `.venv` atual, mas é frágil.
+**Evidência:** `configs/settings.py`, `scripts/validate_env.py`.  
+**Observação:** `validate_env.py` importa `packaging.version`, **não declarado diretamente** em `pyproject.toml` (dependência transitiva — frágil).
 
 ### R12 — Instalação limpa
 
 **Status:** ✅ Atendido  
-**Evidência:** README + `docs/DOCUMENTACAO_ETAPA2.md` descrevem `uv sync`, e a instalação limpa foi validada em uma venv nova do workspace com `scripts/validate_env.py` passando em 25/25 checks.  
-**Observação:** para outra máquina, repita os mesmos passos.
+**Evidência:** README + `docs/DOCUMENTACAO_ETAPA2.md`; commit `c528344` (“validating clean install in a new venv”); docs afirmam 25/25 checks.
 
 ### R13 / R14 — Docker
 
-**Status:** ✅ Atendido (com ressalvas de robustez)  
-**Evidência:** `Dockerfile` (builder + runtime), `docker-compose.yml` com serviços `train` e `mlflow`.  
+**Status:** ✅ Atendido (com ressalvas)  
+**Evidência:** `Dockerfile` multi-stage; `docker-compose.yml` com `train` + `mlflow`.  
 **Ressalvas:**
 
-- `CMD` default da imagem é `validate_env.py` (ok para smoke; treino vem do compose).
-- Compose monta `.:/app` (depende do host ter dados/`dvc.yaml`).
+- Compose monta `.:/app` (depende do host).
 - Imagem não copia `dvc.yaml`/`params.yaml` no build (mitigado pelo volume).
+- `CMD` default = `validate_env.py` (treino via compose).
 
 ### R15 / R16 — DVC
 
-**Status:** 🟡 Parcial / ✅ stages  
+**Status:** 🟡 Parcial (versionamento) / ✅ (≥ 3 stages)  
 **Evidência:**
 
-- `dvc.yaml`: 5 stages (`preprocess`, `enrich_metadata`, `feature_eng`, `train`, `evaluate`) — **≥ 3 ✅**
+- `dvc.yaml`: 5 stages — **≥ 3 ✅**
 - `.dvc/config`: remote `local_remote` → `../data/dvc_remote`
 - `dvc.lock` presente
 
 **Problemas:**
 
-- Neste ambiente, `../data/dvc_remote` **não existia** (`Test-Path` → False).
-- Em `dvc.lock`, deps de CSV têm tamanhos minúsculos (ex.: `ratings.csv` size **123** bytes) — isso é um **snapshot de smoke test** documentado, não o MovieLens 20M completo.
+- Neste ambiente, `../data/dvc_remote` **não existia**.
+- `dvc.lock` aponta CSVs smoke (~123 bytes).
+- `dvc.yaml` declara `data/raw/ratings.csv` (plural), enquanto Kaggle local usa `rating.csv` — o código Python resolve ambos (`movielens_io.py`), mas o **stage DVC** espera o nome plural.
 
-**O que falta:** garantir remote acessível caso a entrega final use o dataset completo.
+**O que falta:** regenerar lock com dataset de entrega + remote acessível + alinhar nomes dos deps no `dvc.yaml`.
 
 ### R17 / R18 — MLflow tracking e ≥ 3 runs
 
-**Status:** ✅ Atendido (pelo código)  
-**Evidência:** `scripts/train.py` e `scripts/evaluate.py` logam params/métricas/artefatos; evaluate cria runs para MostPopular + KNN + RandomForest + torch (≥ 3).  
-**Observação:** presença de `mlruns/`/`mlflow.db` locais é esperada; `.gitignore` ignora `mlruns/` e `mlflow.db`.
+**Status:** ✅ Atendido  
+**Evidência:** `scripts/train.py` e `scripts/evaluate.py` logam params/métricas/artefatos; `metrics.json` lista 4 candidatos com `run_id` (MostPopular, KNN, RF, torch_mlp).
 
-### R19 — Registry Staging → Production
+### R19 — Model Registry Staging → Production
 
 **Status:** ✅ Atendido  
-**Evidência:** `src/evaluation/registry.py::promote_champion` faz Staging e, se `validate_metrics` passar, Production. A execução recente confirmou o champion em Production no snapshot atual.  
-**Fato observado em `metrics.json` (versionado):**
+**Evidência:** `src/evaluation/registry.py` → `promote_champion()` (Staging → Production se métricas válidas).  
+**Observação de negócio/nota:** no snapshot versionado, o champion em Production é **`sklearn_random_forest`**, não o MLP. O PDF pede rede neural como modelo **central**; ter RF como Production é defensável se o vídeo explicar a comparação, mas pode confundir a banca.
 
-```json
-"champion": {
-  "name": "sklearn_random_forest",
-        "stage": "production"
-}
-```
-
-**Observação:** o snapshot atual já promove o champion para Production. A validação de métricas aceita o estado do run atual e a Model Card foi sincronizada com o artefato versionado.
-
-### R20 / R21 — PyTorch MLP + early stopping
+### R20 / R21 — PyTorch + early stopping
 
 **Status:** ✅ Atendido  
-**Evidência:** `src/models/torch_mlp.py`, `src/models/torch_embedding.py`, early stopping em `scripts/train.py` (`patience`, checkpoint `models/model.pth`).
+**Evidência:** `src/models/torch_mlp.py`, `torch_embedding.py`; early stopping em `scripts/train.py` (`patience`).
 
 ### R22 — Baselines + ≥ 4 métricas
 
-**Status:** ✅ Atendido  
-**Evidência:** MostPopular + KNN + RandomForest; métricas RMSE, MAE, Precision@K, Recall@K, NDCG@K, Hit Rate (`src/evaluation/metrics.py`, `scripts/evaluate.py`).
+**Status:** ✅ Atendido (com ressalva de qualidade do snapshot)  
+**Evidência:** MostPopular + KNN + RandomForest; métricas RMSE, MAE, Precision@K, Recall@K, NDCG@K, Hit Rate.  
+**Ressalva:** no `metrics.json` commitado, baselines têm só RMSE/MAE; ranking @K do torch está **0,0** (smoke).
 
-### R23 — Model Card
-
-**Status:** ✅ Atendido  
-**Evidência:** `docs/MODEL_CARD.md` completo em estrutura (dados, métricas, limitações, vieses) e sincronizado com `metrics.json` atual do repositório.  
-**O que falta:** apenas substituir o snapshot por outro, caso a entrega final use o MovieLens completo.
-
-### R24 — README
+### R23 / R24 — Model Card + README
 
 **Status:** ✅ Atendido  
-**Evidência:** `README.md` com setup, pipeline, Docker, links de docs. Deploy cloud ainda placeholder (aceitável por ser opcional).
+**Evidência:** `docs/MODEL_CARD.md` (honesta sobre snapshot); `README.md` com setup, DVC, Docker.
 
 ### R25 — Vídeo STAR
 
 **Status:** 🔴 Não atendido  
-**Evidência:** ausência no repo; `TODO.md` item 6.5 marcado `[ ]`.  
-**O que falta:** gravar e anexar/linkar o vídeo (fora do código).
+**Evidência:** nenhum `.mp4`/`.mov` no repo; `TODO.md` item 6.5 aberto.  
+**O que falta:** gravar e entregar o vídeo (fora do código).
 
 ### R26 — Deploy nuvem
 
 **Status:** 🔴 Não atendido (opcional)  
-**Evidência:** README (“ainda será publicado”); `src/serving/` vazio.
+**Evidência:** README com placeholder Render; `src/serving/` vazio.
 
 ### R29 — BERTopic (plano interno)
 
-**Status:** 🔴 Não atendido / ➖ não obrigatório no PDF  
-**Evidência:** deps em `pyproject.toml`; `scripts/feature_engineering.py` **não importa** BERTopic; `src/features/__init__.py` é stub.  
-**Análise:** não deve ser tratado como falta do PDF; é gap do plano interno/`TODO.md`.
+**Status:** 🔴 / ➖  
+**Evidência:** deps em `pyproject.toml`; **zero** `import bertopic` no código de pipeline; `src/features/__init__.py` stub.  
+**Análise:** **não** é requisito literal do PDF.
 
 ---
 
 ## 7. Auditoria de Refactor e Estrutura
 
-### A estrutura atual é adequada?
-
-**Sim, em linhas gerais.** A organização por camadas (`domain`, `data`, `models`, `evaluation`, `training`) é proporcional ao desafio acadêmico e facilita a demonstração STAR. Não há necessidade de microserviços, CQRS, etc.
-
-### Refactors relevantes (recomendados, não executados)
+A estrutura atual **é adequada** para entregar o Tech Challenge. Não precisa de microserviços nem de reescrita.
 
 | Problema atual | Onde | Impacto | Refactor recomendado | Prioridade |
 |----------------|------|---------|----------------------|------------|
-| Scripts orquestradores monolíticos | `scripts/train.py`, `scripts/evaluate.py` | Dificulta manutenção e viola ≤20 linhas | Extrair loaders, ranking eval, logging MLflow para `src/training/` / `src/evaluation/` | Alta |
-| `feature_eng` só mapeia IDs; metadados TMDB quase não entram no modelo | `scripts/feature_engineering.py` | Pipeline “enriquece” sem efeito no treino | Ou usar features de conteúdo, ou documentar honestamente que o modelo é só colaborativo | Alta (honestidade/STAR) |
-| Pacotes vazios | `src/features/`, `src/serving/` | Confusão arquitetural | Implementar o mínimo ou remover da narrativa até existir código | Média |
-| Duplicação de governança | `.cursor/` espelhado em `.github/` | Drift documental | Manter uma fonte da verdade; espelhar só o necessário (CI) | Baixa |
-| `fit()` no-op nos modelos torch | `torch_mlp.py`, `torch_embedding.py` | API confusa (`fit` não treina) | Treinar via método real ou renomear/documentar que o treino é externo | Média |
-| Champion só por RMSE | `scripts/evaluate.py` | Pode eleger baseline sklearn e contradizer narrativa neural | Critério composto (RMSE + NDCG) alinhado ao Model Card | Alta |
-| Validação de métricas rejeita NaN | `registry.py` + R² | Impede Production | Não incluir R² instável na validação de promoção | Alta |
-| Comentários placeholder em feature_eng | `feature_engineering.py` | Cheiro de scaffold incompleto | Completar ou limpar comentários | Média |
+| Scripts monolíticos | `scripts/train.py`, `evaluate.py` | Dificulta cumprir ≤ 20 linhas e revisão | Extrair loaders, loops e logging MLflow para funções/módulos pequenos | Alta (nota clean code) |
+| `feature_eng` só mapeia IDs | `scripts/feature_engineering.py` | Metadados TMDB não entram no modelo | Ou integrar features de conteúdo, ou documentar honestamente “colaborativo puro” no STAR | Média |
+| Stubs vazios | `src/features/`, `src/serving/` | Ruído / expectativa falsa | Preencher ou remover da narrativa de arquitetura | Baixa |
+| Champion por RMSE só | `scripts/evaluate.py` L369 | RF vence MLP no smoke; ranking @K ignorado na promoção | Critério multi-métrica ou forçar neural como modelo “oficial” + RF como baseline | Média (narrativa) |
+| Duplicação RMSE/MAE | `metrics.py` vs `metric_strategy.py` | Confusão leve | Unificar em um módulo | Baixa |
+| Comentários scaffold | `feature_engineering.py` L34–49 | Cheiro de template | Remover “Example:” / “In a real scenario” | Baixa |
+| Espelho `.cursor` / `.github` | pastas de governança | Manutenção duplicada | Manter uma fonte; não bloqueia entrega | Baixa |
 
-### O que **não** vale a pena refatorar agora
+**O que NÃO vale a pena refatorar agora:**
 
-- Reescrever Factory/Strategy (já atendem o PDF).
-- Trocar uv por Poetry só por formalismo.
-- Criar API FastAPI completa se o bônus de nuvem não for perseguido.
-- Introduzir BERTopic pesado só para “completar TODO”, se isso atrasar o vídeo STAR.
-
-> **Não há necessidade clara de alterar** a estrutura base `src/models` + `src/evaluation/metrics.py` + `src/data/preprocessors` — estão adequados ao desafio.
+- Factory/Strategy já existentes.
+- Cliente TMDB + cache DVC.
+- Seeds + Settings + validate_env.
+- Métricas de ranking em `src/evaluation/metrics.py`.
+- Model Card atual (já é honesta).
 
 ---
 
 ## 8. Auditoria de Limpeza do Projeto
 
 | Arquivo/Componente | Motivo | Evidência | Recomendação |
-|--------------------|--------|-----------|--------------|
-| `scripts/hello_train.py` | Scaffold antigo (“hello train”) | Só imprime paths; não referenciado em `dvc.yaml`/compose | **Seguro para remover** (após confirmar que ninguém usa) |
-| `src/features/__init__.py` / `src/serving/__init__.py` | Pacotes vazios | Apenas docstring; sem imports no código | **Manter** como placeholder **ou** remover se confundir a banca — validar narrativa |
-| `bertopic` / `sentence-transformers` em prod deps | Pesados e não usados no código de treino | Nenhum `import bertopic` em `scripts/`/`src/` de pipeline | **Provavelmente removível** das deps de prod (mover para optional) — validar plano do time |
-| Docs `docs/CURSOR_STRUCTURE_REPORT.md`, `docs/CURSOR_REFACTOR_REPORT.md` | Relatos históricos da pasta `.cursor` | Descrevem estado antigo / scaffold SetAI | **Provavelmente removível** do material de entrega (arquivar) |
-| Espelho `.github/commands` ≈ `.cursor/commands` | Duplicação | Contagens similares (~33–36 arquivos) | **Manter** um; limpar o outro com cuidado |
-| `.cursor/.setai/` | Resíduo do gerador SetAI | README próprio; relatório Cursor sugere arquivar | **Provavelmente removível** |
-| `metrics.json` atual | Artefato de run do snapshot | Champion RF em Production | **Manter arquivo** e versionar outro run se houver dataset final |
-| `llm/` + `scripts/generate_llm_report_pdf.py` | Demo/extra | Não exigido pelo PDF; útil para apresentação | **Manter** se for usado no STAR; senão marcar como extra |
-| `scripts/demo_recommend.py`, `create_dummy_data.py` | Utilitários de demo | Úteis para smoke test | **Manter** |
-| `AUDITORIA_DESAFIO.md` / auditorias antigas | Checklists anteriores | Complementares | **Manter** ou consolidar nesta auditoria |
-| `data/processed/*.parquet` locais grandes | Gerados | `.gitignore` ignora (exceto `movie_metadata.parquet`) | **Manter política**; não commitar features/ratings |
-| `movie_metadata.parquet` (~7,8 MB) | Cache TMDB versionado | Tracked + dep do DVC | **Manter** (evita refetch) |
-| `.env` local | Secrets | gitignored; chaves presentes localmente | **Manter fora do Git** |
-| `mlflow.db` / `mlruns/` locais | Runtime | gitignored | **Manter localmente**; não versionar |
+| ------------------ | ------ | --------- | ------------ |
+| `scripts/hello_train.py` | Scaffold Docker antigo | Não está no `dvc.yaml`; só imprime paths | **Seguro para remover** (após confirmar que ninguém usa no compose) |
+| `src/features/__init__.py` | Stub | Só docstring; sem imports | **Manter** como placeholder OU documentar “futuro” — não remover se o time ainda planeja BERTopic |
+| `src/serving/__init__.py` | Stub | Sem FastAPI | **Manter** se bônus cloud for perseguido; senão pode sumir da narrativa |
+| `bertopic` / `sentence-transformers` | Deps pesadas sem uso | Nenhum import no pipeline | **Provavelmente removível** das deps de prod (ou `optional`) — validar com o time |
+| `docs/CURSOR_STRUCTURE_REPORT.md`, `CURSOR_REFACTOR_REPORT.md` | Históricos de scaffold | Descrevem estado pré-código | **Provavelmente removível** da entrega à banca (ou mover para pasta interna) |
+| `.cursor/.setai/` | Resíduo SetAI | README próprio | **Provavelmente removível** |
+| `llm/` + `scripts/generate_llm_report_pdf.py` | Demo extra | Fora do DVC; útil para STAR | **Manter** se usado no vídeo; senão opcional |
+| Caches `__pycache__`, `.pytest_cache`, `.ruff_cache` | Gerados | Já no `.gitignore` | **Manter ignorados** (não commitar) |
+| `.env` local | Secrets | Gitignored; `TMDB_API_KEY` preenchida localmente | **Manter fora do Git** |
+| Dados locais `data/raw/*.csv` grandes | Dataset | Gitignored; ok | **Manter local + DVC**; não commitiar CSV |
 
 ---
 
 ## 9. Auditoria de Possíveis Resíduos ou Erros de Código Gerado por IA
 
-### 9.1 Comentários e textos
+### 9.1 Comentários e textos inadequados
 
-Sinais observados (não prova de autoria por IA, mas padrões típicos de geração assistida):
-
-- Comentários didáticos / placeholder em `scripts/feature_engineering.py` (“Simple feature engineering…”, “In a real scenario…”).
-- Documentação massiva de governança Cursor/SetAI (`docs/CURSOR_*`, `.cursor/.setai`).
-- Pasta `llm/examples/prompt_avaliacao_imparcial.md` menciona ChatGPT/Claude como **ferramenta de avaliação humana** — uso consciente, não “código gerado escondido”.
-- Relatórios com tom de agente (`docs/CURSOR_REFACTOR_REPORT.md`: “*Gerado após refatoração…*”).
-
-Não foram encontrados comentários do tipo `Generated by ChatGPT` dentro de `src/`.
+- **Não** há `Generated by ChatGPT` / `Copilot` dentro de `src/`.
+- Sinais concretos de scaffold:
+  - `scripts/feature_engineering.py`: comentários `# Example:` e `# (In a real scenario, use a specific artifact folder)`.
+  - `scripts/hello_train.py`: “hello train (scaffold)”.
+- Docs `CURSOR_*` descrevem regeneração via SetAI/Cursor — histórico de governança, não código de produção.
+- `llm/examples/prompt_avaliacao_imparcial.md` menciona ChatGPT/Claude como **ferramenta de avaliação humana** — uso consciente, não resíduo escondido.
 
 ### 9.2 Código suspeito
 
-| Sinal | Evidência | Risco |
-|-------|-----------|-------|
-| API `fit()` que não treina | `TorchMLPRecommender.fit` só seta `_fitted=True` | Confusão; evaluate chama `fit([], None)` só para liberar `predict` |
-| Dois caminhos de métricas | `evaluation/metrics.py` (ranking) vs `metric_strategy.py` (rating sklearn) | Ok se documentado; parece acúmulo de iterações |
-| `feature_eng` incompleto vs docs que prometem BERTopic/embeddings | docs vs script | Narrativa desalinhada |
-| Champion sklearn no artefato vs neural no Model Card | `metrics.json` vs `MODEL_CARD.md` | Risco alto na avaliação oral/vídeo |
-| JSON com `NaN` não-padrão | `metrics.json` | Pode quebrar parsers estritos |
-| Exceções amplas | `validate_env.py` `except Exception` | Aceitável em script de diagnóstico |
+- `TorchMLPRecommender.fit()` só seta `_fitted = True` (treino real está em `scripts/train.py`) — interface ABC cumprida de forma superficial.
+- Champion selection só por RMSE pode promover baseline sklearn em Production.
+- Stubs `features/` e `serving/` criam arquitetura “prometida” sem implementação.
+- Fallback silencioso de split aleatório se não houver `timestamp` (`src/data/splits.py`) — ok se documentado; risco se o dataset perder a coluna.
 
-### 9.3 Dependências (ver também seção 10)
+### 9.3 Dependências
 
-- Dependências pesadas **declaradas e não usadas** no pipeline (`bertopic`, `sentence-transformers`).
-- `packaging` usado sem declaração direta.
-- Stack principal (torch, sklearn, mlflow, dvc) está alinhada ao PDF.
+Ver seção 10.
 
-### 9.4 Segurança e configurações
+### 9.4 Segurança
 
-- `.env` **não** está versionado (bom).
-- `.env` local contém `TMDB_API_KEY` **preenchida** (comprimento 32) e `DATABASE_URL` preenchida — **não reproduzidos aqui**.
-- `.env.example` sem segredos (bom).
-- Compose usa `env_file: .env.example` (sem chave TMDB) — ok para treino colaborativo; scraping exigiria `.env` real.
-- Sem evidência de secret commitado no Git nesta auditoria.
-- Não há CI; logo não há vazamento via logs de Actions (tampouco há automação).
+- `.env` **não** está no Git (confirmado via `git check-ignore`).
+- `.env.example` sem secrets.
+- Localmente `.env` contém `TMDB_API_KEY` preenchida (comprimento 32) — **valor não reproduzido neste relatório**.
+- `DATABASE_URL` local preenchida — garantir que não vaze em screenshots/logs do vídeo.
+- Compose usa `.env.example` no serviço `train` — adequado para demo sem secrets.
 
 ---
 
 ## 10. Dependências e Segurança
 
-### Dependências obrigatórias do PDF
-
-| Lib | Presente? | Evidência |
-|-----|-----------|-----------|
-| PyTorch | ✅ | `pyproject.toml`, `src/models/torch_*.py` |
-| Scikit-Learn | ✅ | baselines + metric strategies |
-| MLflow | ✅ | train/evaluate/registry |
-| DVC | ✅ | `dvc.yaml`, deps |
-
-### Problemas de dependências
-
 | Item | Classificação | Motivo |
 |------|---------------|--------|
-| `bertopic`, `sentence-transformers` | Possivelmente **desnecessárias hoje** | Sem uso no código de pipeline |
-| `packaging` | Declarativa incompleta | Importado em `validate_env.py`, não listado no `pyproject.toml` |
-| Versões pinned via lock | Bom | `uv.lock` |
-| Vulnerabilidades CVE | ⚪ Não comprovado | Não foi executado audit de CVE dedicado nesta sessão |
+| `torch`, `scikit-learn`, `mlflow`, `dvc` | Adequadas | Exigidas pelo PDF |
+| `bertopic`, `sentence-transformers` | Possivelmente desnecessárias (prod) | Declaradas, não usadas no código |
+| `packaging` | Frágil | Usado em `validate_env.py` sem declaração direta |
+| Versões no `uv.lock` | Atualizadas o suficiente | Não se classifica como vulnerável sem scan CVE |
+| Secrets no Git | Não encontrados | `.env` ignorado; example vazio |
+| CI vulnerabilidades | ⚪ Não comprovado | Sem workflow de Dependabot/audit nesta auditoria |
 
-**Desatualizada ≠ vulnerável.** Nenhuma biblioteca foi marcada como vulnerável sem evidência de scanner.
-
-### Segurança — resumo
-
-| Tema | Status |
-|------|--------|
-| Secrets no Git | ✅ Parece ok (`.env` ignorado) |
-| Secrets locais | ⚠️ Existem no `.env` da máquina (esperado) |
-| CORS / API pública | ➖ Sem API de serving |
-| Pickle/torch load | ⚠️ `torch.load` em evaluate/tests — risco clássico; aceitável se artefato for do próprio time |
-| Dataset bruto no Git | ✅ CSVs raw ignorados |
+**Desatualizada ≠ Vulnerável.** Nenhum CVE foi comprovado com ferramenta nesta auditoria.
 
 ---
 
 ## 11. Qualidade de Código
 
-**Pontos fortes**
+| Aspecto | Avaliação |
+|---------|-----------|
+| Legibilidade em `src/` | Boa |
+| Consistência scripts vs libs | Média (scripts longos) |
+| Nomenclatura | Boa e descritiva |
+| SOLID / patterns | Adequado ao desafio |
+| Tipagem | Boa em `src/`; frouxa em partes |
+| Erros / logging | Aceitável (prints + MLflow) |
+| Manutenibilidade | Boa para projeto acadêmico |
+| Magic numbers | Alguns em `evaluate.py` (`_K=10`, caps de sample) — ok se documentados |
 
-- Separação clara domínio / dados / modelos / avaliação.
-- Type hints e docstrings na maior parte de `src/`.
-- Seeds centralizados (`src/training/seeds.py`).
-- Split temporal com assert (`src/data/splits.py`).
-- Métricas de ranking implementadas e testadas com casos conhecidos.
-
-**Pontos fracos**
-
-- Scripts longos concentrando orquestração + I/O + MLflow.
-- Regra ≤ 20 linhas frequentemente violada.
-- `feature_eng` superficial frente ao restante do MLOps.
-
-**Contexto acadêmico:** a qualidade é **suficiente para o desafio**; o foco agora é concluir o vídeo e decidir se o dataset final será o snapshot atual ou o MovieLens completo.
+Contexto acadêmico: **não precisa** de padrão enterprise completo. Precisa ser justificável e alinhado ao PDF.
 
 ---
 
 ## 12. Testes e Confiabilidade
 
-### O que existe
+**Fatos observados nesta auditoria:**
 
-- **Unitários** em `tests/unit/`: métricas, factory, preprocessors, splits, TMDB client (mock), metadata fetch, paths, MostPopular, coverage report, domain IDs.
-- **Integração** `tests/integration/test_real_inference.py`: depende de `models/model.pth` + fixture JSON (skip se ausente).
-- Nesta auditoria: **`pytest tests/unit` → 52 testes OK**.
+- `pytest tests/unit` na `.venv`: **52 testes, todos passando**.
+- `ruff check`: **sem erros**.
+- Cobertura: `pytest-cov` declarado; **cobertura percentual não medida** nesta auditoria (⚪).
 
-### Lacunas importantes
+| Área | Cobertura de testes | Observação |
+|------|---------------------|------------|
+| Métricas @K / RMSE | Sim (`test_metrics.py`) | Alinhado ao PDF |
+| Factory / MostPopular | Sim | |
+| Preprocessors / splits | Sim | Temporal order testado |
+| TMDB client (mock) | Sim | |
+| Pipeline DVC end-to-end | Não (integração real limitada) | `tests/integration/test_real_inference.py` existe; não foi o foco desta rodada unitária |
+| Registry Staging→Prod | Não unitário dedicado | Lógica em `registry.py` sem teste isolado encontrado |
+| train.py / evaluate.py | Pouco / indireto | Maior risco de regressão |
 
-| Área | Cobertura | Risco |
-|------|-----------|-------|
-| `scripts/train.py` / early stopping | Baixa/ausente | Regressão de treino |
-| `scripts/evaluate.py` / Registry promote | Ausente | Bug NaN → Staging passa despercebido |
-| Pipeline DVC ponta a ponta | Ausente em CI | `dvc repro` quebra em máquina limpa |
-| Ranking metrics no evaluate com modelo real | Parcial (integração separada) | — |
-| Serving/API | N/A | — |
-
-### CI
-
-**Não há** `.github/workflows/` — boa prática interna, não requisito literal do PDF.
-
-**Conclusão:** testes são **bons para o núcleo de métricas/factory**, mas **não protegem** o critério de Registry Production nem a reprodutibilidade DVC full.
+**Conclusão:** testes são **suficientes para o núcleo de domínio/métricas** do desafio, mas **não garantem** sozinhos o `dvc repro` completo nem a qualidade do run de entrega.
 
 ---
 
 ## 13. Documentação
 
-| Documento | Avaliação |
-|-----------|-----------|
-| `README.md` | Bom e atual; deploy cloud ainda placeholder |
-| `docs/MODEL_CARD.md` | Estrutura excelente; agora sincronizado com `metrics.json` |
-| `docs/DOCUMENTACAO_ETAPA2.md` | Sólida para uv/settings/validate_env |
-| `docs/IMPLEMENTACAO_MLP_PYTORCH.md` | Útil para STAR |
-| `docs/AUDITORIA_DESAFIO.md` | Checklist curto; parcialmente desatualizado vs artefatos |
-| `TODO.md` | Plano rico; ainda marca vídeo aberto; alguns itens internos (BERTopic) misturam obrigação e desejo |
-| Docs TMDB (`FLUXO_*`, `GUIA_SCRAPING_*`) | Boas; prometem uso futuro em features |
-| Docs Cursor (`CURSOR_*`) | Históricos; pouco úteis para banca |
-| PDF do desafio | Presente em `docs/` |
+| Documento | Status | Observação |
+|-----------|--------|------------|
+| `README.md` | ✅ Bom | Setup, DVC, Docker; admite snapshot smoke |
+| `docs/MODEL_CARD.md` | ✅ Bom | Alinhado ao `metrics.json` smoke |
+| `docs/DOCUMENTACAO_ETAPA2.md` | ✅ | Reprodutibilidade |
+| `docs/AUDITORIA_DESAFIO.md` | 🟡 | Checklist útil; parcialmente desatualizado vs HEAD |
+| `TODO.md` | 🟡 | Rico; mistura obrigação PDF e desejos (BERTopic) |
+| `docs/CURSOR_*` | 🟡 Obsoleto para banca | Histórico de scaffold |
+| Vídeo STAR | 🔴 Ausente | |
 
-**Observação:** o run atual ficou consistente entre Model Card, `metrics.json` e Registry.
+**Risco:** docs prometem MovieLens 20M; artefatos Git mostram smoke. O README já avisa — reforçar no vídeo.
 
 ---
 
 ## 14. Pontos Positivos
 
-1. **Factory + Strategy reais e usados** no pipeline — não são “classes enfeite”.
-2. **Pipeline DVC com 5 stages** bem acima do mínimo de 3.
-3. **Early stopping + scheduler + seeds** no treino PyTorch.
-4. **Comparação neural vs baselines** com tabela em `metrics.json`.
-5. **Coleta TMDB cacheada** (parquet versionado) — alinhada à ideia de não chamar API a cada `dvc repro`.
-6. **Model Card** bem escrito para apresentação.
-7. **Testes de métricas com oráculos conhecidos** — adequado ao enunciado de recomendação.
-8. **README executável** (`uv sync`, `validate_env`, `dvc repro`, compose).
-
-> **Não há necessidade clara de alterar** a implementação das métricas em `src/evaluation/metrics.py` nem o padrão Strategy dos preprocessors — estão corretos para o desafio.
-
----
-
-## 15. Problemas P0 — Crítico
-
-1. **Vídeo STAR ausente** — 10% da nota; entregável obrigatório do PDF.
-2. **`dvc.lock` / dados versionados refletem o snapshot de smoke test por design** — ok para o repositório; a versão final com MovieLens completo exige novos dados.
+- Estrutura `src/` clara e alinhada ao enunciado — **não há necessidade clara de reorganizar pastas**.
+- Factory + Strategy realmente implementados e usados.
+- Pipeline DVC com 5 stages conectados de ponta a ponta.
+- Early stopping + seeds + MLflow logging no treino.
+- Comparação neural vs baselines com ≥ 4 métricas no código.
+- Registry com promoção Staging→Production automatizada.
+- Model Card honesta sobre limitações e snapshot fraco.
+- TMDB com cache versionável (não chama API a cada `dvc repro`).
+- Ruff + pytest verdes na auditoria.
+- Commits semânticos e `.env.example` corretos.
+- Analogia e-commerce bem explicada no README.
 
 ---
 
-## 16. Problemas P1 — Importante
+## 15. Problemas P0
 
-1. **Remote DVC `../data/dvc_remote` ausente neste ambiente** — reprodutibilidade frágil se alguém quiser usar remote local sem configurar.
-2. **`feature_eng` não consome metadados TMDB no modelo** — docs/TODO prometem mais do que o código entrega.
-3. **Funções ≫ 20 linhas** nos scripts principais.
-4. **Champion por RMSE apenas** — pode eleger baseline e enfraquecer o discurso do MLP.
+1. **Vídeo STAR obrigatório ausente** — pode zerar 10% da nota.  
+2. **Artefatos de evidência no Git desalinhados** (`dvc.lock` smoke + `metrics.json` com @K=0 e champion RF) — risco de a banca avaliar um pipeline “de brinquedo” mesmo com treino local grande.
 
 ---
 
-## 17. Problemas P2 — Recomendado
+## 16. Problemas P1
 
-1. Declarar `packaging` (ou remover dependência) em `validate_env.py`.
-2. Mover BERTopic/sentence-transformers para extras opcionais até existir código.
-3. Cobrir Registry/evaluate com testes unitários (NaN, promoção).
-4. Adicionar CI mínima (`ruff` + `pytest`).
-5. Limpar stubs/`hello_train.py` e docs Cursor obsoletos.
+1. Funções ≫ 20 linhas (regra explícita do PDF / clean code 15%).  
+2. `dvc.yaml` fixa `ratings.csv` enquanto dados Kaggle usam `rating.csv`.  
+3. Remote DVC `../data/dvc_remote` inexistente neste ambiente.  
+4. Champion Production = Random Forest no snapshot versionado (narrativa da rede neural enfraquecida).  
+5. Metadados TMDB não entram no forward do modelo (docs/TODO prometem mais).  
+6. `packaging` não declarado diretamente.
 
 ---
 
-## 18. Problemas P3 — Opcional
+## 17. Problemas P2
 
-1. Deploy cloud / FastAPI (`src/serving/`).
-2. Ablation BERTopic/TMDB no forward.
-3. Unificar espelho `.cursor`/`.github`.
-4. Remover pasta `llm/` se não entrar no vídeo.
-5. Polimento de nomenclatura `fit()` nos modelos torch.
+1. Deps BERTopic/sentence-transformers sem uso.  
+2. Stubs `features/` e `serving/`.  
+3. Ausência de CI GitHub Actions (boa prática, não PDF).  
+4. Dockerfile sem copiar `dvc.yaml`/`params.yaml` (ok com volume).  
+5. Testes fracos para `train`/`evaluate`/Registry.
+
+---
+
+## 18. Problemas P3
+
+1. Remover `hello_train.py` e docs Cursor históricos.  
+2. Unificar RMSE/MAE duplicados.  
+3. Limpar comentários scaffold em `feature_engineering.py`.  
+4. Deploy cloud / FastAPI (bônus opcional).
 
 ---
 
 ## 19. Plano de Ação Recomendado
 
-> **Não executar automaticamente.** Ordem sugerida para maximizar nota com menos risco.
+| # | Prioridade | Problema | Ação recomendada | Arquivos | Motivo | Impacto |
+|---|------------|----------|------------------|----------|--------|--------|
+| 1 | P0 | Sem vídeo STAR | Roteiro Situation/Task/Action/Result + gravar ≤ 5 min | fora do repo / link na entrega | 10% da nota | Desbloqueia entrega |
+| 2 | P0 | Evidência Git = smoke | Rodar evaluate no dataset de entrega; atualizar `metrics.json`, Model Card e, se aplicável, `dvc.lock` | `metrics.json`, `docs/MODEL_CARD.md`, `dvc.lock` | Banca vê números reais | Credibilidade |
+| 3 | P1 | Nomes CSV DVC | Alinhar deps do `dvc.yaml` aos nomes reais (ou gerar symlinks/cópias `ratings.csv`) | `dvc.yaml`, `data/raw/` | `dvc repro` quebra em Kaggle puro | Reprodutibilidade |
+| 4 | P1 | Clean code ≤ 20 linhas | Quebrar `train.py` / `evaluate.py` em helpers | `scripts/` | Critério 15% | Nota clean code |
+| 5 | P1 | Champion RF | Explicar no STAR **ou** ajustar critério de promoção / destacar MLP como modelo central | `evaluate.py`, Model Card, vídeo | Evitar confusão | Nota neural + vídeo |
+| 6 | P2 | Deps mortas | Mover BERTopic para optional ou implementar mínimo | `pyproject.toml` | Instalação mais leve | Reprodutibilidade |
+| 7 | P2 | Remote DVC | Documentar criação do remote local ou S3 | `.dvc/config`, README | `dvc pull` funciona | Etapa 3 |
+| 8 | P3 | Limpeza | Remover `hello_train`, docs Cursor velhos | scripts/docs | Menos ruído | Polimento |
 
-| # | Prioridade | Problema | Ação recomendada | Arquivos | Motivo | Impacto esperado |
-|---|------------|----------|------------------|----------|--------|------------------|
-| 1 | P0 | Vídeo STAR | Roteiro STAR + gravar ≤5 min + link no README | `README.md`, material externo | Entregável obrigatório | +10% potencial |
-| 2 | P1 | DVC lock/remote | Regenerar `dvc.lock` com dados de entrega; documentar remote | `dvc.lock`, `.dvc/config`, README | Reprodutibilidade | Etapa 3 |
-| 3 | P1 | Narrativa feature_eng | Usar metadados **ou** declarar modelo colaborativo puro | `feature_engineering.py`, docs | Evitar overclaim | STAR/Action |
-| 4 | P1 | Scripts longos | Extrair funções ≤20 linhas | `train.py`, `evaluate.py` | Clean code | Manutenção |
-| 5 | P2 | Deps mortas | Optional-deps BERTopic | `pyproject.toml` | Instalação mais leve | Reprodutibilidade |
-| 6 | P2 | Testes de registry | Unit tests NaN/promote | `tests/unit/` | Evitar regressão | Confiabilidade |
-| 7 | P3 | Limpeza | Remover `hello_train`, docs Cursor velhos | scripts/docs | Menos ruído | Polimento |
-| 8 | P3 | Bônus cloud | Só se sobrar tempo | `serving/`, deploy | +5% | Opcional |
+**IMPORTANTE:** este plano é recomendação. **Nenhuma ação foi executada nesta auditoria.**
 
 ---
 
 ## 20. Checklist Final para Entrega
 
-- [ ] Vídeo STAR ≤ 5 min publicado/linkado
-- [ ] `metrics.json` e Model Card revisados no mesmo run de entrega final, se houver dataset completo
-- [ ] Modelo no MLflow Registry em **Production** (evidência screenshot/run id)
-- [x] `ruff check` = 0 erros
-- [ ] `pytest` verde (unit + integração com `model.pth` de entrega)
-- [ ] `uv sync` + `validate_env.py` ok em máquina limpa
-- [ ] `dvc repro` ok com dataset documentado (full ou amostra explícita)
-- [ ] Docker: `docker compose run --rm train` e UI MLflow acessível
-- [ ] README revisado (sem links quebrados / placeholders críticos)
-- [ ] Confirmar que nenhum `.env` com secrets será commitado
-- [ ] Decidir se BERTopic entra na fala do vídeo (hoje: código não usa)
-- [ ] (Opcional) URL pública do deploy
+- [ ] Vídeo STAR ≤ 5 min gravado e linkado na entrega
+- [ ] `metrics.json` + Model Card refletem o run que a banca deve acreditar
+- [ ] `dvc repro` funciona em máquina limpa (ou documentar smoke vs full)
+- [ ] `uv sync` + `validate_env.py` OK
+- [ ] `docker compose` sobe `mlflow` e `train`
+- [ ] Ruff + pytest verdes
+- [ ] Registry mostra Staging→Production (print no vídeo)
+- [ ] README com passos reais (uv, não só poetry)
+- [ ] Nenhum `.env` commitado
+- [ ] Decidir se BERTopic entra ou sai da narrativa
+- [ ] (Opcional) Deploy nuvem + URL pública
 
 ---
 
 ## 21. Conclusão
 
-### O projeto atende ao Tech Challenge?
+### Respostas diretas
 
-**Sim, no código e na documentação técnica atual, com uma pendência obrigatória ainda aberta: o vídeo STAR.**  
-Tecnicamente, a base pedida pelo PDF está implementada e os artefatos principais agora estão sincronizados.
+1. **O projeto atende ao Tech Challenge?** Quase: **sim no código técnico principal**; **não completa a entrega** sem o vídeo STAR e com artefatos Git ainda em modo smoke.  
+2. **Quanto está atendido?** Estimativa **~78%** dos critérios ponderados do PDF.  
+3. **O que falta?** Vídeo STAR; sincronizar evidências (`metrics`/`dvc.lock`/narrativa); reforçar clean code nos scripts.  
+4. **Algo estruturalmente errado?** Não de forma grave — a pasta `src/` e o pipeline fazem sentido.  
+5. **O que vale refatorar?** Scripts longos; alinhamento DVC/nomes CSV; critério de champion / narrativa neural.  
+6. **O que NÃO vale?** Reescrever Factory/Strategy, TMDB client, métricas core, Settings.  
+7. **Remover?** `hello_train.py`, docs Cursor históricos, deps BERTopic até uso real (validar).  
+8. **Resíduos de IA?** Comentários scaffold e docs SetAI; sem “Generated by ChatGPT” no `src/`.  
+9. **Deps problemáticas?** BERTopic não usado; `packaging` transitivo — sem CVE comprovado.  
+10. **Segurança?** `.env` local com API key (ok se não versionado); não commitir secrets.  
+11. **Testes suficientes?** Sim para domínio/métricas; fracos para orquestração completa.  
+12. **Docs corretas?** Em geral sim; honestas sobre smoke; TODO mistura desejo vs obrigação.  
+13. **Antes da entrega?** Vídeo + evidências coerentes + checagem `dvc repro`/`docker`.  
+14. **Ordem?** STAR → sincronizar métricas/lock → DVC nomes/remote → clean code scripts → limpeza.  
+15. **Riscos de perder pontos:** ausência do vídeo (10%); clean code parcial (15%); DVC/repro frágil (15%); narrativa com champion RF e @K=0 no snapshot Git.
 
-### Quanto está atendido?
-
-Estimativa: **~80%** de aderência técnica ponderada pelos critérios do PDF (vídeo ainda zerando 10 pp).
-
-### O que ainda falta (obrigatório)?
-
-1. Vídeo STAR  
-2. Artefatos DVC/métricas do dataset final, caso a entrega seja com MovieLens completo  
-3. Evidência de instalação limpa já validada em venv nova
-
-### Riscos de perder pontos se entregar agora
-
-| Critério | Risco |
-|----------|-------|
-| Vídeo STAR (10%) | Perda quase certa se não entregar |
-| DVC (15%) | Desconto se `dvc repro`/lock não refletirem o dataset apresentado |
-| Rede neural (15%) | Menor risco de código; a narrativa precisa explicar o champion do snapshot atual |
-| Docker / Reprodutibilidade | Risco moderado (compose depende de volume/dados) |
-| Bônus cloud (5%) | Não pontua (opcional) |
-
-### Resposta direta às 15 perguntas da missão
-
-1. **Atende?** Quase — código sim em larga medida; entrega completa ainda não.  
-2. **Quanto?** ~80% (estimativa).  
-3. **Falta?** Vídeo e, se houver entrega com dataset final, o lock DVC correspondente.  
-4. **Estrutura errada?** Não estruturalmente; scripts longos e `feature_eng` ainda poderiam ser refinados.
-5. **Vale refatorar?** Sim: evaluate/registry, feature_eng/narrativa, quebrar scripts.  
-6. **Não vale?** Trocar stack, inventar microserviços, forçar BERTopic às pressas.  
-7. **Remover?** `hello_train.py`, docs Cursor históricos, deps BERTopic até uso real.  
-8. **Resíduos de IA?** Placeholders/scaffold e docs SetAI; sem “Generated by ChatGPT” no `src/`.  
-9. **Deps problemáticas?** Pesadas sem uso (BERTopic); `packaging` indireto; CVE não auditado.  
-10. **Segurança?** `.env` local com chave (ok se não commitada); sem API aberta.  
-11. **Testes?** Bons no núcleo; fracos no Registry/pipeline.  
-12. **Docs?** Boas e sincronizadas com o snapshot atual.
-13. **Antes da entrega?** STAR + decidir dataset final + revisar o lock DVC.  
-14. **Ordem?** Ver Plano de Ação (seção 19).  
-15. **Riscos de nota?** Vídeo, reprodutibilidade DVC se o dataset final não estiver versionado, e a narrativa do modelo se o snapshot atual for usado sem explicação.
+**Classificação final:** **Bem alinhado** — praticamente pronto no código; **não** “pronto para entregar” até fechar o vídeo STAR e alinhar as evidências versionadas ao run que o grupo quer apresentar.
 
 ---
 
-*Fim da auditoria. Nenhuma alteração de código foi realizada além da criação deste relatório.*
+*Auditoria somente leitura. Única alteração permitida e realizada: criação/atualização deste arquivo `AUDITORIA_TECH_CHALLENGE.md`.*
