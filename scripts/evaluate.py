@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import sys
+import tempfile
 from pathlib import Path
 
 import mlflow
@@ -17,7 +18,9 @@ import torch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "configs"))
 
+from settings import load_settings  # noqa: E402
 from data.splits import assert_temporal_order, temporal_train_test_split  # noqa: E402
 from evaluation.metric_strategy import compute_metrics  # noqa: E402
 from evaluation.metrics import average_metrics  # noqa: E402
@@ -34,12 +37,13 @@ _BASELINE_TEST_MAX = 50_000
 
 
 def parse_args() -> argparse.Namespace:
+    settings = load_settings()
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-type", type=str, default="torch_mlp")
     parser.add_argument(
         "--experiment-name",
         type=str,
-        default="movie-rec-sys-training",
+        default=settings.mlflow_experiment_name,
     )
     parser.add_argument(
         "--registry-model-name",
@@ -87,20 +91,16 @@ def log_mlflow_model(
         mlflow.log_params(params)
         mlflow.log_metrics(safe_metrics)
         if model_name.startswith("torch"):
-            device = next(model.parameters()).device
-            model_cpu = model.cpu()
-            mlflow.pytorch.log_model(
-                model_cpu,
-                name="model",
-                serialization_format="pickle",
-            )
-            model.to(device)
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                artifact_path = Path(tmp_dir) / "model.pth"
+                device = next(model.parameters()).device
+                torch.save(model.cpu().state_dict(), artifact_path)
+                model.to(device)
+                mlflow.log_artifact(str(artifact_path), artifact_path="model")
         elif hasattr(model, "estimator"):
-            mlflow.sklearn.log_model(
-                model.estimator,
-                name="model",
-                serialization_format="cloudpickle",
-            )
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                mlflow.sklearn.save_model(model.estimator, tmp_dir)
+                mlflow.log_artifacts(tmp_dir, artifact_path="model")
         return run.info.run_id
 
 
@@ -116,7 +116,7 @@ def evaluate_candidate(
         idx = rng.choice(len(X_test), size=_BASELINE_TEST_MAX, replace=False)
         X_test = X_test[idx]
         y_test = y_test[idx]
-    predictions = model.predict(X_test)
+    predictions = np.atleast_1d(model.predict(X_test))
     return compute_metrics(y_test.tolist(), predictions)
 
 
@@ -230,10 +230,11 @@ def _run_baselines(
     _append_candidate(candidates, popular.name, run_id, popular_metrics)
 
     for baseline in ["knn", "random_forest"]:
+        n_neighbors = max(1, min(20, len(X_train)))
         model = create_model(
             "sklearn_baseline",
             baseline=baseline,
-            n_neighbors=20 if baseline == "knn" else 2,
+            n_neighbors=n_neighbors if baseline == "knn" else 2,
             max_depth=8,
         )
         model.fit(X_train, y_train)
@@ -323,6 +324,7 @@ def _comparison_table(candidates: list[dict[str, object]]) -> list[dict[str, obj
 
 def main() -> int:
     args = parse_args()
+    settings = load_settings()
     set_global_seeds(42)
     processed_dir = get_processed_dir()
     models_dir = get_project_root() / "models"
@@ -333,8 +335,7 @@ def main() -> int:
         print("Missing inputs for evaluation.")
         return 1
 
-    tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
-    mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
     mlflow.set_experiment(args.experiment_name)
 
     df = pd.read_parquet(ratings_path)
@@ -366,7 +367,10 @@ def main() -> int:
     )
 
     champion = min(candidates, key=lambda item: item["metrics"]["rmse"])
-    registry = MLflowRegistryManager(tracking_uri, args.registry_model_name)
+    registry = MLflowRegistryManager(
+        settings.mlflow_tracking_uri,
+        args.registry_model_name,
+    )
     model_version = registry.register_model_version(
         champion["run_id"],
         champion["artifact_path"],

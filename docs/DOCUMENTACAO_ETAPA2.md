@@ -47,8 +47,8 @@ colaborador (ou pipeline CI/CD) instale exatamente as mesmas versões.
 **Para instalar o ambiente do zero:**
 
 ```bash
-# Instalar uv (se não tiver)
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# Instalar uv seguindo as instruções oficiais para o seu sistema operacional
+# https://docs.astral.sh/uv/getting-started/installation/
 
 # Clonar e sincronizar
 git clone <repo>
@@ -72,8 +72,8 @@ A classe `Settings` agora cobre todas as variáveis de ambiente do projeto:
 | `tmdb_language` | `TMDB_LANGUAGE` | `"en-US"` | Idioma das respostas TMDB |
 | `tmdb_min_interval_sec` | `TMDB_MIN_INTERVAL_SEC` | `0.26` | Rate limit (req/s) |
 | `tmdb_max_retries` | `TMDB_MAX_RETRIES` | `4` | Tentativas antes de desistir |
-| `mlflow_tracking_uri` | `MLFLOW_TRACKING_URI` | `"http://localhost:5000"` | Servidor MLflow |
-| `mlflow_experiment_name` | `MLFLOW_EXPERIMENT_NAME` | `"movielens-recommender"` | Experimento padrão |
+| `mlflow_tracking_uri` | `MLFLOW_TRACKING_URI` | `"sqlite:///mlflow.db"` | Backend local padrão; compose pode sobrescrever |
+| `mlflow_experiment_name` | `MLFLOW_EXPERIMENT_NAME` | `"movie-rec-sys-training"` | Experimento padrão |
 | `dvc_remote_url` | `DVC_REMOTE_URL` | `"./dvc-storage"` | Remote DVC local/S3 |
 | `data_dir` | `DATA_DIR` | `./data` | Raiz de dados |
 | `raw_data_path` | `RAW_DATA_PATH` | `./data/raw` | Dados brutos |
@@ -173,14 +173,14 @@ git clone <repo-url>
 cd 9mlet-tech-challenge-2-movie-rec-sys
 git checkout feat/step-2-v2
 
-# 2. Instalar uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# 2. Instalar uv seguindo as instruções oficiais para o seu sistema operacional
+# https://docs.astral.sh/uv/getting-started/installation/
 
 # 3. Sincronizar dependências (usa uv.lock para versões exatas)
 uv sync
 
 # 4. Copiar .env e preencher as chaves
-cp .env.example .env
+python -c "from pathlib import Path; Path('.env').write_text(Path('.env.example').read_text(encoding='utf-8'), encoding='utf-8')"
 # editar .env com TMDB_API_KEY, etc.
 
 # 5. Validar

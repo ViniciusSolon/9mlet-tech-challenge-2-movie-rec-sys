@@ -3,7 +3,7 @@ stages:
     cmd: python scripts/preprocess.py --strategy ${preprocess.strategy}
     deps:
       - scripts/preprocess.py
-      - data/raw/rating.csv
+      - data/raw/ratings.csv
     params:
       - preprocess.strategy
     outs:
@@ -13,8 +13,8 @@ stages:
     cmd: python scripts/enrich_metadata.py
     deps:
       - scripts/enrich_metadata.py
-      - data/raw/movie.csv
-      - data/raw/link.csv
+      - data/raw/movies.csv
+      - data/raw/links.csv
       - data/processed/movie_metadata.parquet
     outs:
       - data/processed/enriched_metadata.parquet
@@ -29,18 +29,7 @@ stages:
       - data/processed/features_ratings.parquet
 
   train:
-    cmd: >-
-      python scripts/train.py 
-      --epochs ${train.epochs} 
-      --lr ${train.lr} 
-      --batch-size ${train.batch_size} 
-      --embedding-dim ${train.embedding_dim} 
-      --hidden-dim ${train.hidden_dim}
-      --dropout ${train.dropout}
-      --model-type ${train.model_type}
-      --val-split ${train.val_split}
-      --patience ${train.patience}
-      --seed ${train.seed}
+    cmd: python scripts/train.py --epochs ${train.epochs} --lr ${train.lr} --batch-size ${train.batch_size} --embedding-dim ${train.embedding_dim} --hidden-dim ${train.hidden_dim} --dropout ${train.dropout} --model-type ${train.model_type} --val-split ${train.val_split} --patience ${train.patience} --seed ${train.seed}
     deps:
       - scripts/train.py
       - data/processed/features_ratings.parquet
@@ -59,11 +48,7 @@ stages:
       - models/model.pth
 
   evaluate:
-    cmd: >-
-      python scripts/evaluate.py
-      --model-type ${train.model_type}
-      --experiment-name ${mlflow.experiment_name}
-      --registry-model-name ${mlflow.registry_model_name}
+    cmd: python scripts/evaluate.py --model-type ${train.model_type} --experiment-name ${mlflow.experiment_name} --registry-model-name ${mlflow.registry_model_name}
     deps:
       - scripts/evaluate.py
       - data/processed/features_ratings.parquet

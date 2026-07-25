@@ -17,7 +17,9 @@ from torch.utils.data import DataLoader, TensorDataset
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+sys.path.insert(0, str(ROOT / "configs"))
 
+from settings import load_settings  # noqa: E402
 from data.splits import temporal_train_test_split  # noqa: E402
 from models.factory import create_model  # noqa: E402
 from training.seeds import set_global_seeds  # noqa: E402
@@ -84,6 +86,7 @@ def _run_epoch(
 def main() -> int:
     args = parse_args()
     set_global_seeds(args.seed)
+    settings = load_settings()
 
     processed_dir = get_processed_dir()
     models_dir = get_project_root() / "models"
@@ -98,9 +101,8 @@ def main() -> int:
     df = pd.read_parquet(ratings_path)
 
     os.environ["GIT_PYTHON_REFRESH"] = "quiet"
-    tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
-    mlflow.set_tracking_uri(tracking_uri)
-    mlflow.set_experiment("movie-rec-sys-training")
+    mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
+    mlflow.set_experiment(settings.mlflow_experiment_name)
 
     n_users = int(df["user_idx"].max() + 1)
     n_movies = int(df["movie_idx"].max() + 1)

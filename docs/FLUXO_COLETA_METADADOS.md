@@ -173,8 +173,8 @@ O modelo **não lê parágrafo de sinopse**; lê **vetores** gerados a partir da
 Na **raiz do projeto** (onde está o `TODO.md`):
 
 ```bash
-# Ativar ambiente (exemplo Windows)
-.venv\Scripts\activate
+# Ativar o ambiente com o comando adequado ao seu sistema operacional
+# Consulte o README para exemplos cross-platform
 
 # Testar com 3 filmes
 python scripts/fetch_external_metadata.py --limit 3

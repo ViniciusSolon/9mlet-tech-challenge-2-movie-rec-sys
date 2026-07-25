@@ -3,15 +3,14 @@
 
 from __future__ import annotations
 
+import unicodedata
 from pathlib import Path
 
 from fpdf import FPDF
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "docs" / "RELATORIO_TESTE_LLM_ANA.pdf"
-FONT = Path(r"C:\Windows\Fonts\calibri.ttf")
-FONT_B = Path(r"C:\Windows\Fonts\calibrib.ttf")
-FONT_I = Path(r"C:\Windows\Fonts\calibrii.ttf")
+FONT_NAME = "Helvetica"
 
 # Paleta
 NAVY = (15, 55, 95)
@@ -46,29 +45,38 @@ class ReportPDF(FPDF):
 
 def _setup(pdf: ReportPDF) -> None:
     pdf.set_auto_page_break(auto=True, margin=18)
-    pdf.add_font("Calibri", "", str(FONT))
-    pdf.add_font("Calibri", "B", str(FONT_B))
-    pdf.add_font("Calibri", "I", str(FONT_I))
     pdf.alias_nb_pages()
+
+
+def _clean(text: str) -> str:
+    normalized = unicodedata.normalize("NFKD", text)
+    ascii_text = normalized.encode("ascii", "ignore").decode("ascii")
+    replacements = {
+        "->": "->",
+        "--": "-",
+    }
+    for old, new in replacements.items():
+        ascii_text = ascii_text.replace(old, new)
+    return ascii_text
 
 
 def _banner(pdf: ReportPDF) -> None:
     pdf.set_fill_color(*NAVY)
     pdf.rect(0, 0, 210, 42, style="F")
     pdf.set_xy(15, 12)
-    pdf.set_font("Calibri", "B", 18)
+    pdf.set_font(FONT_NAME, "B", 18)
     pdf.set_text_color(*WHITE)
-    pdf.cell(0, 8, "Teste de usabilidade — pasta llm/", ln=True)
+    pdf.cell(0, 8, _clean("Teste de usabilidade - pasta llm/"), ln=True)
     pdf.set_x(15)
-    pdf.set_font("Calibri", "", 11)
-    pdf.cell(0, 7, "Movie Rec Sys · FIAP Tech Challenge Fase 02 · Julho/2026", ln=True)
+    pdf.set_font(FONT_NAME, "", 11)
+    pdf.cell(0, 7, _clean("Movie Rec Sys - FIAP Tech Challenge Fase 02 - Julho/2026"), ln=True)
     pdf.ln(18)
 
 
 def _h1(pdf: ReportPDF, text: str) -> None:
-    pdf.set_font("Calibri", "B", 14)
+    pdf.set_font(FONT_NAME, "B", 14)
     pdf.set_text_color(*NAVY)
-    pdf.cell(0, 9, text, ln=True)
+    pdf.cell(0, 9, _clean(text), ln=True)
     pdf.set_draw_color(*TEAL)
     pdf.set_line_width(0.6)
     y = pdf.get_y()
@@ -77,24 +85,24 @@ def _h1(pdf: ReportPDF, text: str) -> None:
 
 
 def _h2(pdf: ReportPDF, text: str) -> None:
-    pdf.set_font("Calibri", "B", 12)
+    pdf.set_font(FONT_NAME, "B", 12)
     pdf.set_text_color(*TEAL)
-    pdf.cell(0, 8, text, ln=True)
+    pdf.cell(0, 8, _clean(text), ln=True)
     pdf.ln(1)
 
 
 def _p(pdf: ReportPDF, text: str) -> None:
-    pdf.set_font("Calibri", "", 10.5)
+    pdf.set_font(FONT_NAME, "", 10.5)
     pdf.set_text_color(*GRAY)
-    pdf.multi_cell(0, 5.5, text)
+    pdf.multi_cell(0, 5.5, _clean(text))
     pdf.ln(2)
 
 
 def _bullet(pdf: ReportPDF, text: str) -> None:
-    pdf.set_font("Calibri", "", 10.5)
+    pdf.set_font(FONT_NAME, "", 10.5)
     pdf.set_text_color(*GRAY)
     pdf.set_x(18)
-    pdf.multi_cell(0, 5.5, f"•  {text}")
+    pdf.multi_cell(0, 5.5, _clean(f"-  {text}"))
 
 
 def _callout(pdf: ReportPDF, title: str, body: str, color: tuple[int, int, int]) -> None:
@@ -102,16 +110,16 @@ def _callout(pdf: ReportPDF, title: str, body: str, color: tuple[int, int, int])
     pdf.set_draw_color(*color)
     pdf.set_line_width(0.8)
     x, y = 15, pdf.get_y()
-    pdf.set_font("Calibri", "B", 10.5)
+    pdf.set_font(FONT_NAME, "B", 10.5)
     pdf.set_text_color(*color)
     # estimate height
     pdf.set_xy(x + 3, y + 3)
     start = pdf.get_y()
-    pdf.cell(0, 5, title, ln=True)
+    pdf.cell(0, 5, _clean(title), ln=True)
     pdf.set_x(x + 3)
-    pdf.set_font("Calibri", "", 10)
+    pdf.set_font(FONT_NAME, "", 10)
     pdf.set_text_color(*GRAY)
-    pdf.multi_cell(175, 5, body)
+    pdf.multi_cell(175, 5, _clean(body))
     end = pdf.get_y() + 3
     pdf.rect(x, y, 180, end - y, style="D")
     pdf.set_y(end + 3)
@@ -120,9 +128,9 @@ def _callout(pdf: ReportPDF, title: str, body: str, color: tuple[int, int, int])
 def _table_header(pdf: ReportPDF, cols: list[tuple[str, float]]) -> None:
     pdf.set_fill_color(*NAVY)
     pdf.set_text_color(*WHITE)
-    pdf.set_font("Calibri", "B", 9.5)
+    pdf.set_font(FONT_NAME, "B", 9.5)
     for label, w in cols:
-        pdf.cell(w, 7, label, border=0, align="C", fill=True)
+        pdf.cell(w, 7, _clean(label), border=0, align="C", fill=True)
     pdf.ln()
 
 
@@ -136,10 +144,10 @@ def _table_row(
     else:
         pdf.set_fill_color(*WHITE)
     pdf.set_text_color(*GRAY)
-    pdf.set_font("Calibri", "", 9)
+    pdf.set_font(FONT_NAME, "", 9)
     h = 6.5
     for text, w, align in cells:
-        pdf.cell(w, h, text[:42], border=0, align=align, fill=True)
+        pdf.cell(w, h, _clean(text[:42]), border=0, align=align, fill=True)
     pdf.ln()
 
 
