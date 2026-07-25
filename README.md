@@ -2,83 +2,89 @@
 
 Sistema de recomendação personalizada com **PyTorch**, **DVC**, **MLflow** e **Docker**, usando o dataset [MovieLens 20M](https://www.kaggle.com/datasets/grouplens/movielens-20m-dataset).
 
-## Status do scaffold
+## Status
 
-- **Blocos 0–1:** estrutura `src/`, Factory, Strategy, Ruff, pytest, Docker mínimo
-- **Etapa de scraping TMDB:** concluída — [docs/GUIA_SCRAPING_E_PIPELINE.md](docs/GUIA_SCRAPING_E_PIPELINE.md) (leigos) · [docs/PRE_ETAPA_METADADOS.md](docs/PRE_ETAPA_METADADOS.md) (comandos)
+| Etapa do PDF | Situação |
+|--------------|----------|
+| 1 — Clean Code | ✅ Factory, Strategy, ruff, testes |
+| 2 — Ambiente | ✅ `uv sync` + `uv.lock` + Settings |
+| 3 — Docker + DVC + MLflow | ✅ `dvc repro` + compose |
+| 4 — Modelo + Registry + Model Card | ✅ MLP/Embedding + baselines + Registry; vídeo STAR pendente |
+
+Detalhes: [TODO.md](TODO.md) · [docs/MODEL_CARD.md](docs/MODEL_CARD.md) · [docs/AUDITORIA_DESAFIO.md](docs/AUDITORIA_DESAFIO.md)
 
 ## Estrutura
 
 ```
 src/
-  domain/       # UserId, MovieId, Rating, RecommendationList
-  data/         # preprocessors (Strategy), external/ (TMDB)
-  features/     # feature_eng (Bloco 4)
-  models/       # Factory + stubs PyTorch/sklearn
-  training/     # seeds, loops (Bloco 5)
-  evaluation/   # métricas @K (Bloco 5)
-  serving/      # inferência (opcional)
-configs/        # YAML
-data/           # raw / processed (não versionar CSV brutos no Git)
-scripts/        # hello_train, fetch TMDB, relatórios de metadados
+  domain/       # IDs, Rating, RecommendationList
+  data/         # preprocessors (Strategy), splits, external/ (TMDB)
+  features/     # feature_eng (próx.: BERTopic)
+  models/       # Factory: MLP, Embedding, sklearn, MostPopular
+  training/     # seeds
+  evaluation/   # métricas @K + Registry
+  serving/      # inferência (opcional / bônus)
+configs/        # settings + YAML
+scripts/        # pipeline DVC, validate_env, fetch TMDB
 tests/          # espelha src/
+docs/           # Model Card, scraping, auditoria
 ```
 
 ## Pré-requisitos
 
-Para executar este projeto, você precisará ter instalado em sua máquina:
+1. **Python 3.11+** e [uv](https://github.com/astral-sh/uv) *ou* Docker Desktop  
+2. **Git**  
+3. **MovieLens 20M** em `data/raw/` (não versionado no Git):
+   - Aceitos: `rating.csv` **ou** `ratings.csv`, `movie.csv`/`movies.csv`, `link.csv`/`links.csv`
+   - Fonte: [Kaggle — MovieLens 20M](https://www.kaggle.com/datasets/grouplens/movielens-20m-dataset)
 
-1.  **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** (recomendado para Windows/macOS) ou **Docker + Docker Compose** (Linux).
-2.  **Git** para clonar o repositório.
-3.  **Dataset MovieLens 20M**: Devido ao tamanho (600MB+), os arquivos brutos não estão no Git.
-    *   Baixe o dataset no [Kaggle](https://www.kaggle.com/datasets/grouplens/movielens-20m-dataset).
-    *   Extraia os arquivos `.csv` na pasta `data/raw/` do projeto. Você deve ter pelo menos:
-        *   `data/raw/rating.csv`
-        *   `data/raw/movie.csv`
-        *   `data/raw/link.csv`
+## Setup local (recomendado para dev)
 
----
-
-## Como Executar (Guia Rápido)
-
-Siga estes passos para treinar o modelo e visualizar os resultados sem precisar configurar um ambiente Python local:
-
-### 1. Clonar e Configurar
 ```bash
 git clone <url-do-repositorio>
 cd 9mlet-tech-challenge-2-movie-rec-sys
-# Certifique-se de que os dados estão em data/raw/
+uv sync
+cp .env.example .env   # preencha TMDB_API_KEY só se for re-coletar metadados
+python scripts/validate_env.py
 ```
 
-### 2. Primeiro Treinamento (Forçado)
-Como os ambientes Docker são isolados, na primeira execução precisamos forçar o "pipeline" de dados a rodar completamente:
+O parquet TMDB (`data/processed/movie_metadata.parquet`) já pode vir no repo — **não** é necessário rerodar o scrap.
+
+## Pipeline DVC
+
 ```bash
-docker-compose run train python -m dvc repro -f
-```
-*Este comando vai: Limpar dados antigos -> Processar Ratings -> Enriquecer com Metadados -> Treinar o Modelo PyTorch.*
+# opcional: dados sintéticos para smoke test
+python scripts/create_dummy_data.py
 
-### 3. Subir o ambiente completo
-Após o treinamento, inicie os serviços para persistir os resultados e abrir a interface visual:
+dvc repro
+```
+
+Stages: `preprocess → enrich_metadata → feature_eng → train → evaluate`
+
+## Docker + MLflow
+
 ```bash
-docker-compose up
+# garantir CSVs em data/raw/ (ou dummy)
+docker compose run train          # executa dvc repro
+docker compose up                 # sobe MLflow em http://localhost:5000
 ```
 
-### 4. Acompanhar Experimentos (MLflow)
-Com os containers rodando, abra o navegador e acesse:
-👉 **[http://localhost:5000](http://localhost:5000)**
+## Treino / avaliação manual
 
-Lá você encontrará:
-*   Métricas de erro (MSE) por época.
-*   Parâmetros utilizados (Learning Rate, Batch Size, etc).
-*   O modelo treinado pronto para download (`model.pth`).
+```bash
+python scripts/train.py --model-type torch_mlp --epochs 10
+python scripts/evaluate.py        # baselines + torch + Registry Staging→Production
+```
 
----
+## Documentação
 
-## Desenvolvimento local (Opcional para Devs)
-
-## Plano de execução
-
-Ver [TODO.md](TODO.md), [docs/](docs/) e contexto em [.cursor/context/](.cursor/context/).
+| Doc | Conteúdo |
+|-----|----------|
+| [docs/MODEL_CARD.md](docs/MODEL_CARD.md) | Performance, limitações, vieses |
+| [docs/AUDITORIA_DESAFIO.md](docs/AUDITORIA_DESAFIO.md) | Checklist vs PDF do desafio |
+| [docs/IMPLEMENTACAO_MLP_PYTORCH.md](docs/IMPLEMENTACAO_MLP_PYTORCH.md) | Detalhe do treino neural |
+| [docs/DOCUMENTACAO_ETAPA2.md](docs/DOCUMENTACAO_ETAPA2.md) | Ambiente e deps |
+| [docs/GUIA_SCRAPING_E_PIPELINE.md](docs/GUIA_SCRAPING_E_PIPELINE.md) | Etapa TMDB |
 
 ## Licença
 

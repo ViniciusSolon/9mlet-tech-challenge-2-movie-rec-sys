@@ -29,11 +29,22 @@ def main() -> int:
     
     print(f"Loading TMDB metadata from {tmdb_path}...")
     tmdb_metadata = pd.read_parquet(tmdb_path)
-    
-    # Enrichment: join ML metadata with TMDB metadata
+    # Parquet usa snake_case (movie_id); MovieLens usa movieId.
+    rename = {}
+    if "movie_id" in tmdb_metadata.columns:
+        rename["movie_id"] = "movieId"
+    if "tmdb_id" in tmdb_metadata.columns:
+        rename["tmdb_id"] = "tmdbId_tmdb"
+    tmdb_metadata = tmdb_metadata.rename(columns=rename)
+
     print("Enriching metadata...")
-    enriched = ml_metadata.merge(tmdb_metadata, on="tmdbId", how="left", suffixes=("", "_tmdb"))
-    
+    enriched = ml_metadata.merge(
+        tmdb_metadata,
+        on="movieId",
+        how="left",
+        suffixes=("", "_tmdb"),
+    )
+
     out_path = processed_dir / "enriched_metadata.parquet"
     enriched.to_parquet(out_path)
     print(f"Saved enriched metadata to {out_path} ({len(enriched)} movies)")

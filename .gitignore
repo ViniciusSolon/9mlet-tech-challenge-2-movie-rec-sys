@@ -23,6 +23,9 @@ data/logs/*
 models/*
 !models/.gitkeep
 mlruns/
+artifacts/
+mlflow.db
+*.db-journal
 .dvc/cache/
 .dvc/tmp/
 

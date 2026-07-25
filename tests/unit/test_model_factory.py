@@ -10,12 +10,15 @@ from models.factory import create_model
 @pytest.mark.parametrize(
     "kind,expected_name",
     [
+        ("most_popular", "most_popular"),
         ("sklearn_baseline", "sklearn_knn"),
         ("torch_embedding", "torch_embedding"),
         ("torch_mlp", "torch_mlp"),
     ],
 )
 def test_create_model_returns_expected_kind(kind: str, expected_name: str) -> None:
+    if kind.startswith("torch"):
+        pytest.importorskip("torch")
     if kind == "sklearn_baseline":
         model = create_model(kind, baseline="knn")
     else:

@@ -1,4 +1,101 @@
 {
-    "rmse": 3.5563717959033423,
-    "mse": 12.647780350696763
+    "split": {
+        "strategy": "temporal_preferred",
+        "temporal_order_ok": true,
+        "test_ratio": 0.2
+    },
+    "comparison": [
+        {
+            "model": "torch_mlp",
+            "rmse": 0.7799614397921041,
+            "mae": 0.5999588141989708,
+            "precision@10": 0.1662,
+            "recall@10": 0.04209516571594447,
+            "ndcg@10": 0.17932668386343872,
+            "hit_rate@10": 0.626
+        },
+        {
+            "model": "most_popular",
+            "rmse": 0.8865833323714211,
+            "mae": 0.6905839620611955,
+            "precision@10": null,
+            "recall@10": null,
+            "ndcg@10": null,
+            "hit_rate@10": null
+        },
+        {
+            "model": "sklearn_random_forest",
+            "rmse": 0.9059318620132765,
+            "mae": 0.7201446667972117,
+            "precision@10": null,
+            "recall@10": null,
+            "ndcg@10": null,
+            "hit_rate@10": null
+        },
+        {
+            "model": "sklearn_knn",
+            "rmse": 0.9478450229336017,
+            "mae": 0.7596725,
+            "precision@10": null,
+            "recall@10": null,
+            "ndcg@10": null,
+            "hit_rate@10": null
+        }
+    ],
+    "candidates": [
+        {
+            "name": "most_popular",
+            "run_id": "de961972f7dc4860871523283ec4b996",
+            "artifact_path": "model",
+            "metrics": {
+                "rmse": 0.8865833323714211,
+                "mae": 0.6905839620611955,
+                "mse": 0.7860300052388137,
+                "r2": 0.08534585559277696
+            }
+        },
+        {
+            "name": "sklearn_knn",
+            "run_id": "9a45cfe86af943c58b793d6493a477fc",
+            "artifact_path": "model",
+            "metrics": {
+                "rmse": 0.9478450229336017,
+                "mae": 0.7596725,
+                "mse": 0.8984101874999999,
+                "r2": -0.04542396078745581
+            }
+        },
+        {
+            "name": "sklearn_random_forest",
+            "run_id": "27e9f454cce04240a730fb1c543af8a0",
+            "artifact_path": "model",
+            "metrics": {
+                "rmse": 0.9059318620132765,
+                "mae": 0.7201446667972117,
+                "mse": 0.8207125386108423,
+                "r2": 0.0449879523628236
+            }
+        },
+        {
+            "name": "torch_mlp",
+            "run_id": "ef974a9002474bf59c998cefdb2303ca",
+            "artifact_path": "model",
+            "metrics": {
+                "rmse": 0.7799614397921041,
+                "mae": 0.5999588141989708,
+                "mse": 0.6083398475625721,
+                "r2": 0.29211282130112615,
+                "precision@10": 0.1662,
+                "recall@10": 0.04209516571594447,
+                "ndcg@10": 0.17932668386343872,
+                "hit_rate@10": 0.626
+            }
+        }
+    ],
+    "champion": {
+        "name": "torch_mlp",
+        "run_id": "ef974a9002474bf59c998cefdb2303ca",
+        "version": 1,
+        "stage": "production"
+    }
 }

@@ -3,9 +3,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Sequence
+from collections.abc import Sequence
 
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.metrics import (
+    mean_absolute_error,
+    mean_squared_error,
+    r2_score,
+    root_mean_squared_error,
+)
 
 
 class MetricStrategy(ABC):
@@ -36,7 +41,7 @@ class RMSEStrategy(MetricStrategy):
         return "rmse"
 
     def compute(self, y_true: Sequence[float], y_pred: Sequence[float]) -> float:
-        return float(mean_squared_error(y_true, y_pred, squared=False))
+        return float(root_mean_squared_error(y_true, y_pred))
 
 
 class MAEStrategy(MetricStrategy):
@@ -65,6 +70,12 @@ METRIC_STRATEGIES: list[MetricStrategy] = [
 ]
 
 
-def compute_metrics(y_true: Sequence[float], y_pred: Sequence[float]) -> dict[str, float]:
+def compute_metrics(
+    y_true: Sequence[float],
+    y_pred: Sequence[float],
+) -> dict[str, float]:
     """Compute all configured rating metrics in a consistent order."""
-    return {strategy.name: strategy.compute(y_true, y_pred) for strategy in METRIC_STRATEGIES}
+    return {
+        strategy.name: strategy.compute(y_true, y_pred)
+        for strategy in METRIC_STRATEGIES
+    }

@@ -1,0 +1,68 @@
+{
+  "description": "Casos de inferência real contra models/model.pth (torch_mlp treinado no MovieLens 20M).",
+  "model": {
+    "path": "models/model.pth",
+    "type": "torch_mlp",
+    "embedding_dim": 32,
+    "hidden_dim": 128,
+    "dropout": 0.2
+  },
+  "notes": [
+    "user_idx/movie_idx são índices contíguos do treino (não movieId/userId brutos do CSV).",
+    "Scores esperados foram capturados do checkpoint atual; use abs_tol para pequenas variações numéricas.",
+    "Casos 'order' validam preferência relativa (mais robusto que valor absoluto)."
+  ],
+  "score_cases": [
+    {
+      "id": "user0_item0",
+      "input": { "user_idx": 0, "movie_idx": 0 },
+      "expected": { "score": 3.9119, "abs_tol": 0.05, "min": 0.5, "max": 5.5 }
+    },
+    {
+      "id": "user0_item1",
+      "input": { "user_idx": 0, "movie_idx": 1 },
+      "expected": { "score": 3.6703, "abs_tol": 0.05, "min": 0.5, "max": 5.5 }
+    },
+    {
+      "id": "user1_item0",
+      "input": { "user_idx": 1, "movie_idx": 0 },
+      "expected": { "score": 4.5204, "abs_tol": 0.05, "min": 0.5, "max": 5.5 }
+    },
+    {
+      "id": "user100_item50",
+      "input": { "user_idx": 100, "movie_idx": 50 },
+      "expected": { "score": 3.0413, "abs_tol": 0.05, "min": 0.5, "max": 5.5 }
+    },
+    {
+      "id": "last_user_last_item",
+      "input": { "user_idx": 138479, "movie_idx": 27277 },
+      "expected": { "score": 4.0363, "abs_tol": 0.05, "min": 0.5, "max": 5.5 }
+    }
+  ],
+  "order_cases": [
+    {
+      "id": "user0_prefers_315_over_240",
+      "input": {
+        "user_idx": 0,
+        "higher_movie_idx": 315,
+        "lower_movie_idx": 240
+      },
+      "expected": {
+        "relation": "score(higher) > score(lower)",
+        "min_margin": 0.5
+      }
+    },
+    {
+      "id": "user0_item0_above_item100",
+      "input": {
+        "user_idx": 0,
+        "higher_movie_idx": 0,
+        "lower_movie_idx": 100
+      },
+      "expected": {
+        "relation": "score(higher) > score(lower)",
+        "min_margin": 0.3
+      }
+    }
+  ]
+}

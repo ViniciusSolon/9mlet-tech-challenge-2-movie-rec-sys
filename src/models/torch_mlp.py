@@ -68,10 +68,11 @@ class TorchMLPRecommender(nn.Module, RecommenderModel):
     def predict(self, features: torch.Tensor) -> list[float]:
         if not self._fitted:
             raise RuntimeError("model is not fitted")
+        device = self.user_embedding.weight.device
         tensor = (
-            features
+            features.to(device)
             if isinstance(features, torch.Tensor)
-            else torch.tensor(features, dtype=torch.long)
+            else torch.tensor(features, dtype=torch.long, device=device)
         )
         self.eval()
         with torch.no_grad():

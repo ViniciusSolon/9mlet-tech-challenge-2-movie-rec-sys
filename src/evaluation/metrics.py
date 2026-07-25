@@ -138,7 +138,7 @@ def average_metrics(
         "ndcg": [],
         "hit_rate": [],
     }
-    for recs, rels in zip(recommended_lists, relevant_sets):
+    for recs, rels in zip(recommended_lists, relevant_sets, strict=True):
         metrics["precision"].append(precision_at_k(recs, rels, k))
         metrics["recall"].append(recall_at_k(recs, rels, k))
         metrics["ndcg"].append(ndcg_at_k(recs, rels, k))

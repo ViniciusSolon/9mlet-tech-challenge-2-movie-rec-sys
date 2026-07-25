@@ -18,9 +18,10 @@ from torch.utils.data import DataLoader, TensorDataset
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from models.factory import create_model
-from training.seeds import set_global_seeds
-from utils.paths import get_processed_dir, get_project_root
+from data.splits import temporal_train_test_split  # noqa: E402
+from models.factory import create_model  # noqa: E402
+from training.seeds import set_global_seeds  # noqa: E402
+from utils.paths import get_processed_dir, get_project_root  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -38,20 +39,22 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _frame_to_loader(frame: pd.DataFrame, batch_size: int, shuffle: bool) -> DataLoader:
+    """Convert a ratings frame into a TensorDataset loader."""
+    X = torch.tensor(frame[["user_idx", "movie_idx"]].values, dtype=torch.long)
+    y = torch.tensor(frame["rating"].values, dtype=torch.float32)
+    return DataLoader(TensorDataset(X, y), batch_size=batch_size, shuffle=shuffle)
+
+
 def _build_loaders(
     df: pd.DataFrame, val_split: float, batch_size: int, seed: int
 ) -> tuple[DataLoader, DataLoader]:
-    """Split data into train/validation loaders."""
-    val_n = max(1, int(len(df) * val_split))
-    val_df = df.sample(n=val_n, random_state=seed)
-    train_df = df.drop(val_df.index)
-
-    def _to_loader(frame: pd.DataFrame, shuffle: bool) -> DataLoader:
-        X = torch.tensor(frame[["user_idx", "movie_idx"]].values, dtype=torch.long)
-        y = torch.tensor(frame["rating"].values, dtype=torch.float32)
-        return DataLoader(TensorDataset(X, y), batch_size=batch_size, shuffle=shuffle)
-
-    return _to_loader(train_df, shuffle=True), _to_loader(val_df, shuffle=False)
+    """Split data temporally (fallback random) into train/validation loaders."""
+    train_df, val_df = temporal_train_test_split(df, test_ratio=val_split, seed=seed)
+    return (
+        _frame_to_loader(train_df, batch_size, shuffle=True),
+        _frame_to_loader(val_df, batch_size, shuffle=False),
+    )
 
 
 def _run_epoch(
@@ -127,7 +130,6 @@ def main() -> int:
         optimizer,
         patience=2,
         factor=0.5,
-        verbose=True,
     )
 
     best_val_loss = float("inf")
@@ -200,7 +202,12 @@ def main() -> int:
             json.dump(training_history, fh, indent=2)
         mlflow.log_artifact(str(history_path))
 
-        mlflow.pytorch.log_model(model, artifact_path="model")
+        example = torch.tensor([[0, 0]], dtype=torch.long, device=device)
+        mlflow.pytorch.log_model(
+            model,
+            artifact_path="model",
+            input_example=example.cpu().numpy(),
+        )
 
     print(f"Model saved to {model_path}")
     return 0
