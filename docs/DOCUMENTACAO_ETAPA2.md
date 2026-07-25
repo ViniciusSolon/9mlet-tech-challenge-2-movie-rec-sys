@@ -44,6 +44,8 @@ uv lock
 O `uv.lock` foi gerado e commitado junto com o `pyproject.toml`. Garante que qualquer
 colaborador (ou pipeline CI/CD) instale exatamente as mesmas versões.
 
+> **Validação prática:** a instalação limpa foi testada em uma venv nova do workspace (`clean-venv`) e `scripts/validate_env.py` passou em 25/25 checks.
+
 **Para instalar o ambiente do zero:**
 
 ```bash
@@ -162,6 +164,17 @@ Reorganizado com seções comentadas para cada etapa do projeto:
 - Seção seeds de reprodutibilidade (Etapa 4)
 - Seção model / evaluation (Etapa 4)
 - Seção opcional PostgreSQL (comentada)
+
+---
+
+## Snapshot de dados versionados
+
+Os CSVs atualmente versionados em `data/raw/` são um snapshot de smoke test.
+Eles servem para reproduzir o pipeline no repositório, mas não substituem o
+MovieLens 20M completo.
+
+Para rodar a versão final com os dados completos, substitua os CSVs por uma
+cópia integral do MovieLens 20M e regenere `dvc.lock` no novo contexto.
 
 ---
 

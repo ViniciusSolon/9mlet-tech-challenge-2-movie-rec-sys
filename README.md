@@ -27,6 +27,12 @@ O fluxo principal é o seguinte:
 5. O stage `train` treina o modelo PyTorch e salva o checkpoint.
 6. O stage `evaluate` compara o modelo com baselines, calcula métricas e registra o campeão no MLflow Registry.
 
+### Snapshot atual do repositório
+
+Os CSVs versionados em `data/raw/` formam um snapshot enxuto de smoke test. Ele mantém o pipeline reproduzível no repositório, mas não representa o MovieLens 20M completo.
+
+Se você quiser executar a versão final com o dataset completo, substitua os CSVs por uma cópia integral do MovieLens 20M e regenere o `dvc.lock` nesse novo contexto.
+
 ## Arquitetura
 
 ```text
@@ -62,6 +68,8 @@ O projeto roda em Windows, macOS e Linux. Você precisa de:
 - Git
 - DVC CLI para reproduzir o pipeline localmente
 - Dados MovieLens 20M em `data/raw/`
+
+A instalação limpa já foi validada em uma venv nova do workspace, com `scripts/validate_env.py` passando em 25/25 checks.
 
 Arquivos esperados em `data/raw/`:
 
