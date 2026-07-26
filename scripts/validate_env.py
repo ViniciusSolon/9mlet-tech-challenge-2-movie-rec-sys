@@ -226,7 +226,7 @@ def run_all_checks() -> Report:
 
 def main() -> int:
     """Entry point."""
-    print("\n=== validate_env.py — environment sanity check ===\n")
+    print("\n=== validate_env.py - environment sanity check ===\n")
     report = run_all_checks()
     report.print_summary()
     if report.failed:
