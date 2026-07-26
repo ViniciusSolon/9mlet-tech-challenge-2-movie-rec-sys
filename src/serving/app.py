@@ -106,47 +106,38 @@ def _load_data_and_model() -> None:
                     "genres": genres,
                 }
         else:
-            # Fallback rich synthetic catalog with real movie names
-            sample_catalog = {
-                1: ("Toy Story (1995)", "Adventure / Animation / Comedy"),
-                2: ("Jumanji (1995)", "Adventure / Children / Fantasy"),
-                3: ("Grumpier Old Men (1995)", "Comedy / Romance"),
-                6: ("Heat (1995)", "Action / Crime / Thriller"),
-                10: ("GoldenEye (1995)", "Action / Adventure / Thriller"),
-                47: ("Seven (Se7en) (1995)", "Mystery / Thriller"),
-                50: ("Usual Suspects, The (1995)", "Crime / Mystery / Thriller"),
-                110: ("Braveheart (1995)", "Action / Drama / War"),
-                260: ("Star Wars: Episode IV - A New Hope (1977)", "Action / Adventure / Sci-Fi"),
-                296: ("Pulp Fiction (1994)", "Comedy / Crime / Drama"),
-                318: ("Shawshank Redemption, The (1994)", "Crime / Drama"),
-                356: ("Forrest Gump (1994)", "Comedy / Drama / Romance"),
-                527: ("Schindler's List (1993)", "Drama / History"),
-                589: ("Terminator 2: Judgment Day (1991)", "Action / Sci-Fi"),
-            }
+            # Full catalog fallback from movies_df (9,742 movies!)
+            num_movies = max(len(df_m), 1000)
             _STATE["n_users"] = 610
-            _STATE["n_movies"] = 9742
+            _STATE["n_movies"] = num_movies
             _STATE["user_id_to_idx"] = {uid: uid - 1 for uid in range(1, 611)}
             _STATE["idx_to_user_id"] = {uid - 1: uid for uid in range(1, 611)}
-            _STATE["idx_to_movie"] = {
-                idx: {
+
+            _STATE["idx_to_movie"] = {}
+            for idx, row in df_m.iterrows():
+                mid = int(row.get("movieId", idx + 1))
+                title = str(row.get("title", f"Produto #{mid}"))
+                genres = str(row.get("genres", "Geral")).replace("|", " / ")
+                _STATE["idx_to_movie"][idx] = {
                     "movieId": mid,
                     "title": title,
                     "genres": genres,
                 }
-                for idx, (mid, (title, genres)) in enumerate(sample_catalog.items())
-            }
 
-            # Create synthetic ratings dataframe
+            # Create rich ratings dataframe for 610 users over all movies
             rows = []
+            num_catalog = max(len(_STATE["idx_to_movie"]), 1)
             for u in range(1, 611):
-                for mid in [1, 2, 3, 6, 10, 47, 50, 110, 260, 296, 318, 356, 527, 589]:
+                for m_offset in range(8):
+                    m_idx = (u * 17 + m_offset * 31) % num_catalog
+                    meta = _STATE["idx_to_movie"].get(m_idx, {})
                     rows.append(
                         {
                             "userId": u,
                             "user_idx": u - 1,
-                            "movieId": mid,
-                            "movie_idx": mid % 14,
-                            "rating": 5.0 if (u + mid) % 2 == 0 else 4.0,
+                            "movieId": meta.get("movieId", m_idx + 1),
+                            "movie_idx": m_idx,
+                            "rating": 5.0 if m_offset % 2 == 0 else 4.0,
                             "timestamp": 1000000000,
                         }
                     )
