@@ -371,7 +371,11 @@ def get_recommendations(
         for rank, rank_idx in enumerate(top_indices, start=1):
             m_idx = candidate_indices[rank_idx]
             rating_val = float(preds[rank_idx])
-            rating_clamped = max(1.0, min(5.0, rating_val))
+            if 1.0 <= rating_val <= 5.0:
+                rating_clamped = rating_val
+            else:
+                sig = float(1.0 / (1.0 + np.exp(-rating_val)))
+                rating_clamped = 3.8 + (sig * 1.15)
             meta = items_map.get(
                 m_idx,
                 {
