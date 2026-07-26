@@ -32,4 +32,6 @@ COPY .dvc ./.dvc
 
 RUN mkdir -p /app/dvc-storage /app/data/raw /app/data/processed /app/models
 
-CMD ["python", "scripts/validate_env.py"]
+EXPOSE 8000
+
+CMD ["uvicorn", "src.serving.app:app", "--host", "0.0.0.0", "--port", "8000"]
