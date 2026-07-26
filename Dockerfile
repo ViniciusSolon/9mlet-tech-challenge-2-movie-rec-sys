@@ -27,10 +27,9 @@ COPY src ./src
 COPY scripts ./scripts
 COPY configs ./configs
 COPY pyproject.toml uv.lock README.md ./
-COPY dvc.yaml params.yaml ./
-COPY .dvc ./.dvc
-
-RUN mkdir -p /app/dvc-storage /app/data/raw /app/data/processed /app/models
+COPY dvc.yaml params.yaml metrics.json ./
+COPY data ./data
+COPY models ./models
 
 EXPOSE 8000
 

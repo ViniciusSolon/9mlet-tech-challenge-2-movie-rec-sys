@@ -14,7 +14,11 @@ htmlcov
 mlruns
 .env
 data/raw/**/*.csv
+!data/raw/movies.csv
 data/raw/external_metadata/*
 data/processed/*
+!data/processed/enriched_metadata.parquet
+!data/processed/features_ratings.parquet
 models/*
+!models/model.pth
 *.pyc

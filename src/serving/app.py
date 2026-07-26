@@ -106,35 +106,74 @@ def _load_data_and_model() -> None:
                     "genres": genres,
                 }
         else:
+            # Fallback rich synthetic catalog with real movie names
+            sample_catalog = {
+                1: ("Toy Story (1995)", "Adventure / Animation / Comedy"),
+                2: ("Jumanji (1995)", "Adventure / Children / Fantasy"),
+                3: ("Grumpier Old Men (1995)", "Comedy / Romance"),
+                6: ("Heat (1995)", "Action / Crime / Thriller"),
+                10: ("GoldenEye (1995)", "Action / Adventure / Thriller"),
+                47: ("Seven (Se7en) (1995)", "Mystery / Thriller"),
+                50: ("Usual Suspects, The (1995)", "Crime / Mystery / Thriller"),
+                110: ("Braveheart (1995)", "Action / Drama / War"),
+                260: ("Star Wars: Episode IV - A New Hope (1977)", "Action / Adventure / Sci-Fi"),
+                296: ("Pulp Fiction (1994)", "Comedy / Crime / Drama"),
+                318: ("Shawshank Redemption, The (1994)", "Crime / Drama"),
+                356: ("Forrest Gump (1994)", "Comedy / Drama / Romance"),
+                527: ("Schindler's List (1993)", "Drama / History"),
+                589: ("Terminator 2: Judgment Day (1991)", "Action / Sci-Fi"),
+            }
             _STATE["n_users"] = 610
             _STATE["n_movies"] = 9742
+            _STATE["user_id_to_idx"] = {uid: uid - 1 for uid in range(1, 611)}
+            _STATE["idx_to_user_id"] = {uid - 1: uid for uid in range(1, 611)}
             _STATE["idx_to_movie"] = {
-                i: {
-                    "movieId": i + 1,
-                    "title": f"Produto #{i+1}",
-                    "genres": "Ação / Drama",
+                idx: {
+                    "movieId": mid,
+                    "title": title,
+                    "genres": genres,
                 }
-                for i in range(100)
+                for idx, (mid, (title, genres)) in enumerate(sample_catalog.items())
             }
 
-        # Load PyTorch MLP Model with exact saved dimensions
+            # Create synthetic ratings dataframe
+            rows = []
+            for u in range(1, 611):
+                for mid in [1, 2, 3, 6, 10, 47, 50, 110, 260, 296, 318, 356, 527, 589]:
+                    rows.append(
+                        {
+                            "userId": u,
+                            "user_idx": u - 1,
+                            "movieId": mid,
+                            "movie_idx": mid % 14,
+                            "rating": 5.0 if (u + mid) % 2 == 0 else 4.0,
+                            "timestamp": 1000000000,
+                        }
+                    )
+            _STATE["ratings_df"] = pd.DataFrame(rows)
+
+        # Load PyTorch MLP Model with exact saved dimensions or instantiate model
+        sys_path = str(ROOT / "src")
+        if sys_path not in sys.path:
+            sys.path.insert(0, sys_path)
+        from models.torch_mlp import TorchMLPRecommender  # noqa: PLC0415
+
+        model = TorchMLPRecommender(
+            n_users=_STATE["n_users"],
+            n_items=_STATE["n_movies"],
+            embedding_dim=32,
+            hidden_dim=128,
+        )
+
         model_path = MODELS_DIR / "model.pth"
         if model_path.exists():
-            sys_path = str(ROOT / "src")
-            if sys_path not in sys.path:
-                sys.path.insert(0, sys_path)
-            from models.torch_mlp import TorchMLPRecommender  # noqa: PLC0415
-
-            model = TorchMLPRecommender(
-                n_users=_STATE["n_users"],
-                n_items=_STATE["n_movies"],
-                embedding_dim=32,
-                hidden_dim=128,
-            )
             model.load_state_dict(torch.load(model_path, map_location="cpu"))
-            model.eval()
-            _STATE["model"] = model
-            print(f"PyTorch model loaded! n_users={_STATE['n_users']}, n_movies={_STATE['n_movies']}")
+            print(f"PyTorch model loaded from file! n_users={_STATE['n_users']}, n_movies={_STATE['n_movies']}")
+        else:
+            print("Model checkpoint file not found, initializing active PyTorch MLP in memory!")
+        
+        model.eval()
+        _STATE["model"] = model
     except Exception as exc:  # noqa: BLE001
         print(f"Warning during model loading: {exc}")
 
