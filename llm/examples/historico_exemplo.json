@@ -1,0 +1,14 @@
+{
+  "usuario": "Ana (exemplo)",
+  "historico": [
+    { "titulo": "Toy Story", "nota": 5.0 },
+    { "titulo": "Jumanji", "nota": 4.0 },
+    { "titulo": "Heat", "nota": 5.0 },
+    { "titulo": "GoldenEye", "nota": 4.5 },
+    { "titulo": "Usual Suspects", "nota": 5.0 },
+    { "titulo": "Pulp Fiction", "nota": 4.5 },
+    { "titulo": "Shawshank Redemption", "nota": 5.0 },
+    { "titulo": "Forrest Gump", "nota": 4.0 }
+  ],
+  "k": 10
+}

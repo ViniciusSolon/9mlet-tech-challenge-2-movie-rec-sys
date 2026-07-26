@@ -1,85 +1,205 @@
-# MovieLens 20M — Recommendation System (FIAP Tech Challenge 02)
+# MovieLens 20M Recommendation System
 
-Sistema de recomendação personalizada com **PyTorch**, **DVC**, **MLflow** e **Docker**, usando o dataset [MovieLens 20M](https://www.kaggle.com/datasets/grouplens/movielens-20m-dataset).
+Sistema de recomendação desenvolvido para o Tech Challenge da FIAP.
 
-## Status do scaffold
+O projeto usa o dataset MovieLens 20M como uma analogia de e-commerce: `userId` representa o cliente, `movieId` representa o produto e `rating` representa a interação com aquele item. A partir disso, o pipeline prepara os dados, treina modelos de recomendação, compara com baselines, registra experimentos no MLflow e versiona o fluxo com DVC.
 
-- **Blocos 0–1:** estrutura `src/`, Factory, Strategy, Ruff, pytest, Docker mínimo
-- **Etapa de scraping TMDB:** concluída — [docs/GUIA_SCRAPING_E_PIPELINE.md](docs/GUIA_SCRAPING_E_PIPELINE.md) (leigos) · [docs/PRE_ETAPA_METADADOS.md](docs/PRE_ETAPA_METADADOS.md) (comandos)
+## O que este projeto demonstra
 
-## Estrutura
+Este repositório foi estruturado para mostrar um fluxo completo de engenharia de software e MLOps:
 
+- organização do código com responsabilidades separadas;
+- pipeline reprodutível com DVC;
+- treino de modelo neural em PyTorch;
+- comparação com baselines de Scikit-Learn;
+- rastreamento de métricas, parâmetros e artefatos com MLflow;
+- documentação técnica para a entrega do desafio;
+- preparação para apresentação em vídeo e deploy na nuvem.
+
+## Como o projeto funciona
+
+O fluxo principal é o seguinte:
+
+1. Os arquivos CSV brutos do MovieLens ficam em `data/raw/`.
+2. O stage `preprocess` limpa e normaliza as interações.
+3. O stage `enrich_metadata` junta os dados do MovieLens com os metadados do TMDB já versionados no projeto.
+4. O stage `feature_eng` monta a base final de treino.
+5. O stage `train` treina o modelo PyTorch e salva o checkpoint.
+6. O stage `evaluate` compara o modelo com baselines, calcula métricas e registra o campeão no MLflow Registry.
+
+### Snapshot atual do repositório
+
+Os CSVs versionados em `data/raw/` formam um snapshot enxuto de smoke test. Ele mantém o pipeline reproduzível no repositório, mas não representa o MovieLens 20M completo.
+
+Se você quiser executar a versão final com o dataset completo, substitua os CSVs por uma cópia integral do MovieLens 20M e regenere o `dvc.lock` nesse novo contexto.
+
+## Arquitetura
+
+```text
+data/raw
+  -> scripts/preprocess.py
+  -> data/processed/preprocessed_ratings.parquet
+  -> scripts/enrich_metadata.py
+  -> data/processed/enriched_metadata.parquet
+  -> scripts/feature_engineering.py
+  -> data/processed/features_ratings.parquet
+  -> scripts/train.py
+  -> models/model.pth
+  -> scripts/evaluate.py
+  -> metrics.json + MLflow Registry
 ```
-src/
-  domain/       # UserId, MovieId, Rating, RecommendationList
-  data/         # preprocessors (Strategy), external/ (TMDB)
-  features/     # feature_eng (Bloco 4)
-  models/       # Factory + stubs PyTorch/sklearn
-  training/     # seeds, loops (Bloco 5)
-  evaluation/   # métricas @K (Bloco 5)
-  serving/      # inferência (opcional)
-configs/        # YAML
-data/           # raw / processed (não versionar CSV brutos no Git)
-scripts/        # hello_train, fetch TMDB, relatórios de metadados
-tests/          # espelha src/
-```
+
+### Principais pastas
+
+- `src/data/`: leitura, split e preprocessadores.
+- `src/models/`: Factory para `MostPopular`, baselines e modelos PyTorch.
+- `src/evaluation/`: métricas de ranking e rating, além do Registry.
+- `src/training/`: seeds e utilitários de reprodutibilidade.
+- `configs/`: settings carregados do `.env`.
+- `scripts/`: stages do pipeline e utilitários de validação.
+- `tests/`: cobertura de domínio, métricas e componentes centrais.
 
 ## Pré-requisitos
 
-Para executar este projeto, você precisará ter instalado em sua máquina:
+O projeto roda em Windows, macOS e Linux. Você precisa de:
 
-1.  **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** (recomendado para Windows/macOS) ou **Docker + Docker Compose** (Linux).
-2.  **Git** para clonar o repositório.
-3.  **Dataset MovieLens 20M**: Devido ao tamanho (600MB+), os arquivos brutos não estão no Git.
-    *   Baixe o dataset no [Kaggle](https://www.kaggle.com/datasets/grouplens/movielens-20m-dataset).
-    *   Extraia os arquivos `.csv` na pasta `data/raw/` do projeto. Você deve ter pelo menos:
-        *   `data/raw/rating.csv`
-        *   `data/raw/movie.csv`
-        *   `data/raw/link.csv`
+- Python 3.11+
+- `uv` instalado, ou Docker Desktop se preferir rodar em container
+- Git
+- DVC CLI para reproduzir o pipeline localmente
+- Dados MovieLens 20M em `data/raw/`
 
----
+A instalação limpa já foi validada em uma venv nova do workspace, com `scripts/validate_env.py` passando em 25/25 checks.
 
-## Como Executar (Guia Rápido)
+Arquivos esperados em `data/raw/`:
 
-Siga estes passos para treinar o modelo e visualizar os resultados sem precisar configurar um ambiente Python local:
+- `ratings.csv` ou `rating.csv`
+- `movies.csv` ou `movie.csv`
+- `links.csv` ou `link.csv`
 
-### 1. Clonar e Configurar
+Se você quiser regenerar os metadados TMDB, também vai precisar de `TMDB_API_KEY` no `.env`.
+
+## Setup local
+
+### 1. Clonar o repositório
+
 ```bash
 git clone <url-do-repositorio>
 cd 9mlet-tech-challenge-2-movie-rec-sys
-# Certifique-se de que os dados estão em data/raw/
 ```
 
-### 2. Primeiro Treinamento (Forçado)
-Como os ambientes Docker são isolados, na primeira execução precisamos forçar o "pipeline" de dados a rodar completamente:
+### 2. Instalar dependências
+
+O projeto usa **`uv`** com `pyproject.toml` + `uv.lock` (equivalente ao Poetry pedido no enunciado).
+
 ```bash
-docker-compose run train python -m dvc repro -f
+uv sync --extra dev
 ```
-*Este comando vai: Limpar dados antigos -> Processar Ratings -> Enriquecer com Metadados -> Treinar o Modelo PyTorch.*
 
-### 3. Subir o ambiente completo
-Após o treinamento, inicie os serviços para persistir os resultados e abrir a interface visual:
+Extras opcionais:
+
 ```bash
-docker-compose up
+uv sync --extra topics   # BERTopic / sentence-transformers (não exigido pelo PDF)
+uv sync --extra s3       # remote DVC em S3
 ```
 
-### 4. Acompanhar Experimentos (MLflow)
-Com os containers rodando, abra o navegador e acesse:
-👉 **[http://localhost:5000](http://localhost:5000)**
+### 3. Criar o arquivo `.env`
 
-Lá você encontrará:
-*   Métricas de erro (MSE) por época.
-*   Parâmetros utilizados (Learning Rate, Batch Size, etc).
-*   O modelo treinado pronto para download (`model.pth`).
+Use este comando cross-platform para copiar o exemplo:
 
----
+```bash
+python -c "from pathlib import Path; Path('.env').write_text(Path('.env.example').read_text(encoding='utf-8'), encoding='utf-8')"
+```
 
-## Desenvolvimento local (Opcional para Devs)
+Depois, edite o `.env` apenas se precisar alterar chaves, paths ou integrações externas.
 
-## Plano de execução
+### 4. Validar o ambiente
 
-Ver [TODO.md](TODO.md), [docs/](docs/) e contexto em [.cursor/context/](.cursor/context/).
+```bash
+uv run python scripts/validate_env.py
+```
+
+## Ordem recomendada de execução
+
+Se você estiver começando do zero, siga esta sequência:
+
+1. Coloque os CSVs do MovieLens em `data/raw/`.
+2. Rode `uv sync`.
+3. Crie o `.env` a partir do `.env.example`.
+4. Execute `uv run python scripts/validate_env.py`.
+5. Se quiser um smoke test rápido, gere dados sintéticos com `uv run python scripts/create_dummy_data.py`.
+6. Rode `uv run dvc repro` para executar o pipeline completo.
+7. Rode `uv run python scripts/evaluate.py` se quiser executar a avaliação manualmente.
+8. Se estiver usando Docker, suba os serviços de treino e MLflow.
+
+## Pipeline DVC
+
+O pipeline completo está definido em `dvc.yaml` e segue esta ordem:
+
+`preprocess -> enrich_metadata -> feature_eng -> train -> evaluate`
+
+O remote local padrão é `./dvc-storage` (criado automaticamente pelo `validate_env.py`).
+
+Os stages `preprocess` / `enrich_metadata` chamam `scripts/prepare_raw_aliases.py` para aceitar nomes **GroupLens** (`ratings.csv`) ou **Kaggle** (`rating.csv`).
+
+Se você trocar os CSVs brutos e o DVC não invalidar o stage (deps de dados são resolvidas no script), force:
+
+```bash
+uv run python scripts/prepare_raw_aliases.py
+uv run dvc repro -f preprocess
+uv run dvc repro
+```
+
+Para reproduzir tudo:
+
+```bash
+uv run dvc repro
+```
+
+## Docker e MLflow
+
+O projeto também pode ser executado com Docker:
+
+```bash
+docker compose run --rm train
+docker compose up mlflow
+```
+
+O serviço `train` executa o pipeline e o serviço `mlflow` expõe a interface de rastreamento.
+
+Fora do Docker, o projeto usa por padrão um backend SQLite local em `mlflow.db` (`MLFLOW_TRACKING_URI=sqlite:///mlflow.db`). Só use `http://localhost:5000` se o serviço `mlflow` do compose estiver no ar.
+
+## Execução manual
+
+Se você quiser inspecionar o treino ou repetir etapas específicas, use:
+
+```bash
+uv run python scripts/train.py --model-type torch_mlp --epochs 10
+uv run python scripts/evaluate.py
+```
+
+## Deploy na nuvem
+
+O deploy público no Render ainda será publicado.
+
+Quando o serviço estiver no ar, o link ficará neste formato:
+
+```text
+https://<seu-projeto>.onrender.com
+```
+
+Depois do deploy, substitua esse placeholder pela URL real.
+
+## Documentação útil
+
+| Doc | O que você encontra |
+|-----|---------------------|
+| [docs/MODEL_CARD.md](docs/MODEL_CARD.md) | performance, limitações e vieses |
+| [docs/AUDITORIA_DESAFIO.md](docs/AUDITORIA_DESAFIO.md) | checklist vs. enunciado do desafio |
+| [docs/IMPLEMENTACAO_MLP_PYTORCH.md](docs/IMPLEMENTACAO_MLP_PYTORCH.md) | detalhes do treino neural |
+| [docs/DOCUMENTACAO_ETAPA2.md](docs/DOCUMENTACAO_ETAPA2.md) | dependências, settings e validação |
+| [docs/GUIA_SCRAPING_E_PIPELINE.md](docs/GUIA_SCRAPING_E_PIPELINE.md) | etapa TMDB |
 
 ## Licença
 
-MIT — ver [LICENSE](LICENSE).
+MIT. Veja [LICENSE](LICENSE).

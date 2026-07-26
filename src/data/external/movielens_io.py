@@ -1,4 +1,4 @@
-"""Load MovieLens link/movie tables with flexible filenames."""
+"""Load MovieLens link/movie/rating tables with flexible filenames."""
 
 from __future__ import annotations
 
@@ -14,6 +14,13 @@ def _resolve_file(raw_dir: Path, candidates: tuple[str, ...]) -> Path:
             return path
     msg = f"none of {candidates} found in {raw_dir}"
     raise FileNotFoundError(msg)
+
+
+def load_ratings(raw_dir: Path) -> pd.DataFrame:
+    """Load ``ratings.csv`` or ``rating.csv`` (GroupLens vs Kaggle naming)."""
+    path = _resolve_file(raw_dir, ("ratings.csv", "rating.csv"))
+    ratings = pd.read_csv(path)
+    return ratings.rename(columns=str.strip)
 
 
 def load_links(raw_dir: Path) -> pd.DataFrame:

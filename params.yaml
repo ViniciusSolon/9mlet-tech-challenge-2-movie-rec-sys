@@ -2,8 +2,17 @@ preprocess:
   strategy: explicit
 
 train:
-  epochs: 2
+  epochs: 10
   lr: 0.001
   batch_size: 1024
   embedding_dim: 32
+  hidden_dim: 128
+  dropout: 0.2
   model_type: torch_mlp
+  val_split: 0.1
+  patience: 3
+  seed: 42
+
+mlflow:
+  experiment_name: movie-rec-sys-training
+  registry_model_name: movie-rec-sys

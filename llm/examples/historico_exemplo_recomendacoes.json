@@ -1,0 +1,152 @@
+{
+  "usuario": "Ana (exemplo)",
+  "historico_resolvido": [
+    {
+      "query": "Toy Story",
+      "movieId": 1,
+      "movie_idx": 0,
+      "title": "Toy Story (1995)",
+      "rating": 5.0,
+      "overview": "Led by Woody, Andy's toys live happily in his room until Andy's birthday brings Buzz Lightyear onto the scene. Afraid of losing his place in Andy's heart, Woody plots against Buzz. But when circumstances separate Buzz and Woody from their owner, the duo eventually learns to put aside their differences."
+    },
+    {
+      "query": "Jumanji",
+      "movieId": 2,
+      "movie_idx": 1,
+      "title": "Jumanji (1995)",
+      "rating": 4.0,
+      "overview": "When siblings Judy and Peter discover an enchanted board game that opens the door to a magical world, they unwittingly invite Alan -- an adult who's been trapped inside the game for 26 years -- into their living room. Alan's only hope for freedom is to finish the game, which proves risky as all three find themselves running from giant rhinoceroses, evil monkeys and other terrifying creatures."
+    },
+    {
+      "query": "Heat",
+      "movieId": 73608,
+      "movie_idx": 14726,
+      "title": "Heat (1972)",
+      "rating": 5.0,
+      "overview": "Former child star Joe Davis, reduced to living in a cheap Hollywood motel while struggling for acting jobs, is lusted after by nearly every woman he meets, including Jessica Todd, a tightly wound feminist who has recently come out as a lesbian. When Jessica's mother, Sally, an emotionally needy has-been actress, meets Joe, she moves him into her enormous, tacky mansion as her new boy toy and attempts to get him acting work."
+    },
+    {
+      "query": "GoldenEye",
+      "movieId": 10,
+      "movie_idx": 9,
+      "title": "GoldenEye (1995)",
+      "rating": 4.5,
+      "overview": "When a powerful secret defense system is stolen, James Bond is assigned to stop a Russian crime syndicate from using it."
+    },
+    {
+      "query": "Usual Suspects",
+      "movieId": 50,
+      "movie_idx": 49,
+      "title": "Usual Suspects, The (1995)",
+      "rating": 5.0,
+      "overview": "Held in an L.A. interrogation room, Verbal Kint attempts to convince the feds that a mythic crime lord, Keyser Soze, not only exists, but was also responsible for drawing him and his four partners into a multi-million dollar heist that ended with an explosion in San Pedro harbor – leaving few survivors. Verbal lures his interrogators with an incredible story of the crime lord's almost supernatural prowess."
+    },
+    {
+      "query": "Pulp Fiction",
+      "movieId": 296,
+      "movie_idx": 293,
+      "title": "Pulp Fiction (1994)",
+      "rating": 4.5,
+      "overview": "A burger-loving hit man, his philosophical partner, a drug-addled gangster's moll and a washed-up boxer converge in this sprawling, comedic crime caper. Their adventures unfurl in three stories that ingeniously trip back and forth in time."
+    },
+    {
+      "query": "Shawshank Redemption",
+      "movieId": 318,
+      "movie_idx": 315,
+      "title": "Shawshank Redemption, The (1994)",
+      "rating": 5.0,
+      "overview": "Imprisoned in the 1940s for the double murder of his wife and her lover, upstanding banker Andy Dufresne begins a new life at the Shawshank prison, where he puts his accounting skills to work for an amoral warden. During his long stretch in prison, Dufresne comes to be admired by the other inmates -- including an older prisoner named Red -- for his integrity and unquenchable sense of hope."
+    },
+    {
+      "query": "Forrest Gump",
+      "movieId": 356,
+      "movie_idx": 352,
+      "title": "Forrest Gump (1994)",
+      "rating": 4.0,
+      "overview": "A man with a low IQ has accomplished great things in his life and been present during significant historic events—in each case, far exceeding what anyone imagined he could do. But despite all he has achieved, his one true love eludes him."
+    }
+  ],
+  "nao_encontrados": [],
+  "recomendacoes": [
+    {
+      "rank": 1,
+      "movieId": 7502,
+      "titulo": "Band of Brothers (2001)",
+      "score": 0.9701941609382629,
+      "sinopse": "Sinopse indisponível.",
+      "ano": null
+    },
+    {
+      "rank": 2,
+      "movieId": 73453,
+      "titulo": "One Shot (2004)",
+      "score": 0.9606153964996338,
+      "sinopse": "Sinopse indisponível.",
+      "ano": null
+    },
+    {
+      "rank": 3,
+      "movieId": 593,
+      "titulo": "Silence of the Lambs, The (1991)",
+      "score": 0.9576619863510132,
+      "sinopse": "Clarice Starling is a top student at the FBI's training academy.  Jack Crawford wants Clarice to interview Dr. Hannibal Lecter, a brilliant psychiatrist who is also a violent psychopath, serving life behind bars for various acts of murder and cannibalism.  Crawford believes that Lecter may have insight into a case and that Starling, as an attractive young woman, may be just the bait to draw him out.",
+      "ano": 1991
+    },
+    {
+      "rank": 4,
+      "movieId": 79348,
+      "titulo": "Pearl Jam: Immagine in Cornice - Live in Italy 2006 (2007)",
+      "score": 0.9564600586891174,
+      "sinopse": "Concert Film Chronicling Five Dynamic Pearl Jam Shows in Italy From September 2006. Shot In Hi-Def By Noted Photographer Danny Clinch, DVD Gives An Intimate Look At Pearl Jam's Amazing Live Performances And Behind-The-Scenes Footage From The Tour. Concerts were shot partially in hi-def in Bologna, Verona, Milan, Torino, and Pistoia, Italy in September 2006. DVD captures Pearl Jam's phenomenal live performances, as well as exclusive behind-the scenes footage of the band on tour.",
+      "ano": 2007
+    },
+    {
+      "rank": 5,
+      "movieId": 72844,
+      "titulo": "People on Sunday (Menschen am Sonntag) (1930)",
+      "score": 0.9539288282394409,
+      "sinopse": "A semi-documentary experimental 1930 German silent film created by amateurs with a small budget. With authentic scenes of the metropolis city of Berlin, it's the first film from the later famous screenwriters/directors Billy Wilder and Fred Zinnemann.",
+      "ano": 1930
+    },
+    {
+      "rank": 6,
+      "movieId": 27611,
+      "titulo": "Battlestar Galactica (2003)",
+      "score": 0.9536826610565186,
+      "sinopse": "Sinopse indisponível.",
+      "ano": null
+    },
+    {
+      "rank": 7,
+      "movieId": 79045,
+      "titulo": "We Stand Alone Together (2001)",
+      "score": 0.9500473737716675,
+      "sinopse": "Over a period of two years, Mark Cowen and his crew travelled to thirty U.S. states and ten European cities, to interview the veterans of Easy Company. The stories told by the veterans themselves, create a history of the Second World War from the point of view of this heroic company of men, made famous in the mini-series Band of Brothers.",
+      "ano": 2001
+    },
+    {
+      "rank": 8,
+      "movieId": 260,
+      "titulo": "Star Wars: Episode IV - A New Hope (1977)",
+      "score": 0.9486541152000427,
+      "sinopse": "Princess Leia is captured and held hostage by the evil Imperial forces in their effort to take over the galactic Empire. Venturesome Luke Skywalker and dashing captain Han Solo team together with the loveable robot duo R2-D2 and C-3PO to rescue the beautiful princess and restore peace and justice in the Empire.",
+      "ano": 1977
+    },
+    {
+      "rank": 9,
+      "movieId": 58559,
+      "titulo": "Dark Knight, The (2008)",
+      "score": 0.9482173919677734,
+      "sinopse": "Batman raises the stakes in his war on crime. With the help of Lt. Jim Gordon and District Attorney Harvey Dent, Batman sets out to dismantle the remaining criminal organizations that plague the streets. The partnership proves to be effective, but they soon find themselves prey to a reign of chaos unleashed by a rising criminal mastermind known to the terrified citizens of Gotham as the Joker.",
+      "ano": 2008
+    },
+    {
+      "rank": 10,
+      "movieId": 25846,
+      "titulo": "Dawn Patrol, The (1938)",
+      "score": 0.9482114911079407,
+      "sinopse": "In 1915 France, Major Brand commands the 39th Squadron of the Royal Flying Corps. The young airmen go up in bullet-riddled \"crates\" and the casualty rate is appalling, but Brand can't make the \"brass hats\" at headquarters see reason. Insubordinate air ace Captain Courtney is another thorn in Brand's side...but finds the smile wiped from his face when he rises to command the squadron himself. Everyone keeps a stiff upper lip.",
+      "ano": 1938
+    }
+  ]
+}

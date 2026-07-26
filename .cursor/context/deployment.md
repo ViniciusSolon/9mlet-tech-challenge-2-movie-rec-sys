@@ -17,7 +17,7 @@ Document how to build, run, and reproduce the ML pipeline in clean environments.
 ```env
 # MLflow
 MLFLOW_TRACKING_URI=http://localhost:5000
-MLFLOW_EXPERIMENT_NAME=movielens-recommender
+MLFLOW_EXPERIMENT_NAME=movie-rec-sys-training
 
 # DVC
 DVC_REMOTE_URL=./dvc-storage
