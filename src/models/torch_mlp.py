@@ -1,4 +1,4 @@
-"""PyTorch MLP recommender stub (Bloco 5)."""
+"""PyTorch MLP recommender with user/item embeddings."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from models.base import RecommenderModel
 
 
 class TorchMLPRecommender(nn.Module, RecommenderModel):
-    """Placeholder for MLP on concatenated embeddings."""
+    """MLP rating predictor built on concatenated user+item embeddings."""
 
     def __init__(
         self,
@@ -19,6 +19,7 @@ class TorchMLPRecommender(nn.Module, RecommenderModel):
         n_items: int = 100,
         embedding_dim: int = 32,
         hidden_dim: int = 128,
+        dropout: float = 0.2,
     ) -> None:
         super().__init__()
         self.user_embedding = nn.Embedding(n_users, embedding_dim)
@@ -26,9 +27,23 @@ class TorchMLPRecommender(nn.Module, RecommenderModel):
         self.fc = nn.Sequential(
             nn.Linear(embedding_dim * 2, hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, 1),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, hidden_dim // 2),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim // 2, 1),
         )
         self._fitted = False
+        self._init_weights()
+
+    def _init_weights(self) -> None:
+        """Initialise weights with Xavier uniform distribution."""
+        nn.init.xavier_uniform_(self.user_embedding.weight)
+        nn.init.xavier_uniform_(self.item_embedding.weight)
+        for module in self.fc.modules():
+            if isinstance(module, nn.Linear):
+                nn.init.xavier_uniform_(module.weight)
+                nn.init.zeros_(module.bias)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         users = x[:, 0]
@@ -50,9 +65,16 @@ class TorchMLPRecommender(nn.Module, RecommenderModel):
         self._fitted = True
         return self
 
-    def predict(self, features: Any) -> list[float]:
+    def predict(self, features: torch.Tensor) -> list[float]:
         if not self._fitted:
-            msg = "model is not fitted"
-            raise RuntimeError(msg)
-        size = len(features) if hasattr(features, "__len__") else 1
-        return [0.0] * size
+            raise RuntimeError("model is not fitted")
+        device = self.user_embedding.weight.device
+        tensor = (
+            features.to(device)
+            if isinstance(features, torch.Tensor)
+            else torch.tensor(features, dtype=torch.long, device=device)
+        )
+        self.eval()
+        with torch.no_grad():
+            predictions = self.forward(tensor).squeeze().cpu().numpy()
+        return predictions.tolist()

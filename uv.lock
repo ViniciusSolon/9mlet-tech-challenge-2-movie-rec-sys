@@ -876,34 +876,34 @@ wheels = [
 
 [package.optional-dependencies]
 cudart = [
-    { name = "nvidia-cuda-runtime", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "nvidia-cuda-runtime" },
 ]
 cufft = [
-    { name = "nvidia-cufft", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "nvidia-cufft" },
 ]
 cufile = [
-    { name = "nvidia-cufile", marker = "sys_platform == 'linux'" },
+    { name = "nvidia-cufile" },
 ]
 cupti = [
-    { name = "nvidia-cuda-cupti", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "nvidia-cuda-cupti" },
 ]
 curand = [
-    { name = "nvidia-curand", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "nvidia-curand" },
 ]
 cusolver = [
-    { name = "nvidia-cusolver", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "nvidia-cusolver" },
 ]
 cusparse = [
-    { name = "nvidia-cusparse", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "nvidia-cusparse" },
 ]
 nvjitlink = [
-    { name = "nvidia-nvjitlink", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "nvidia-nvjitlink" },
 ]
 nvrtc = [
-    { name = "nvidia-cuda-nvrtc", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "nvidia-cuda-nvrtc" },
 ]
 nvtx = [
-    { name = "nvidia-nvtx", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "nvidia-nvtx" },
 ]
 
 [[package]]
@@ -2368,18 +2368,17 @@ name = "movie-rec-sys"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "bertopic" },
     { name = "dvc" },
     { name = "httpx" },
     { name = "mlflow" },
     { name = "numpy" },
+    { name = "packaging" },
     { name = "pandas" },
     { name = "pyarrow" },
     { name = "pydantic-settings" },
     { name = "pyyaml" },
     { name = "scikit-learn" },
     { name = "scipy" },
-    { name = "sentence-transformers" },
     { name = "torch" },
 ]
 
@@ -2397,16 +2396,21 @@ gdrive = [
 s3 = [
     { name = "dvc", extra = ["s3"] },
 ]
+topics = [
+    { name = "bertopic" },
+    { name = "sentence-transformers" },
+]
 
 [package.metadata]
 requires-dist = [
-    { name = "bertopic", specifier = ">=0.16" },
+    { name = "bertopic", marker = "extra == 'topics'", specifier = ">=0.16" },
     { name = "dvc", specifier = ">=3.56" },
     { name = "dvc", extras = ["gdrive"], marker = "extra == 'gdrive'", specifier = ">=3.56" },
     { name = "dvc", extras = ["s3"], marker = "extra == 's3'", specifier = ">=3.56" },
     { name = "httpx", specifier = ">=0.27" },
     { name = "mlflow", specifier = ">=2.18" },
     { name = "numpy", specifier = ">=1.26" },
+    { name = "packaging", specifier = ">=24.0" },
     { name = "pandas", specifier = ">=2.2" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.7" },
     { name = "pyarrow", specifier = ">=18.0" },
@@ -2418,10 +2422,10 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8" },
     { name = "scikit-learn", specifier = ">=1.5" },
     { name = "scipy", specifier = ">=1.13" },
-    { name = "sentence-transformers", specifier = ">=3.0" },
-    { name = "torch", specifier = ">=2.2" },
+    { name = "sentence-transformers", marker = "extra == 'topics'", specifier = ">=3.0" },
+    { name = "torch", specifier = ">=2.4" },
 ]
-provides-extras = ["s3", "gdrive", "dev"]
+provides-extras = ["s3", "gdrive", "topics", "dev"]
 
 [[package]]
 name = "mpmath"

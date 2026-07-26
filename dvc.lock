@@ -7,12 +7,10 @@ stages:
       hash: md5
       md5: a8d38cd6d397f0c4eb6715168d3a2f2e
       size: 123
-      isexec: true
     - path: scripts/preprocess.py
       hash: md5
-      md5: e529f25c2ee0dd4324273eb5ef1c2560
-      size: 1473
-      isexec: true
+      md5: 44887c03458efa5b0d5b4c376a0b8137
+      size: 1495
     params:
       params.yaml:
         preprocess.strategy: explicit
@@ -26,36 +24,32 @@ stages:
     deps:
     - path: data/processed/movie_metadata.parquet
       hash: md5
-      md5: 05074061d79bfccc39b03eabf93c8a5a
-      size: 2715
-      isexec: true
+      md5: deb6c0c4effcdb1e94420b13d5e50cdc
+      size: 7839353
     - path: data/raw/links.csv
       hash: md5
       md5: a26edd06b3c5b8a688c2fb7ac02be4b5
       size: 71
-      isexec: true
     - path: data/raw/movies.csv
       hash: md5
       md5: 8bc447d0b12c087d57b6be8dbf7e2b7c
       size: 117
-      isexec: true
     - path: scripts/enrich_metadata.py
       hash: md5
-      md5: b8649d4156c3d397e02d75beab1cc02a
-      size: 1405
-      isexec: true
+      md5: a793f5c39919384b5d5d7364f56381be
+      size: 1699
     outs:
     - path: data/processed/enriched_metadata.parquet
       hash: md5
-      md5: d3bc727c22b7473f701d147b4a130cfc
-      size: 4976
+      md5: 815636837e4ef5d0d1040f1f254cac04
+      size: 13702
   feature_eng:
     cmd: python scripts/feature_engineering.py
     deps:
     - path: data/processed/enriched_metadata.parquet
       hash: md5
-      md5: d3bc727c22b7473f701d147b4a130cfc
-      size: 4976
+      md5: 815636837e4ef5d0d1040f1f254cac04
+      size: 13702
     - path: data/processed/preprocessed_ratings.parquet
       hash: md5
       md5: 05572d4666259f48ade77a34f1b66030
@@ -64,15 +58,15 @@ stages:
       hash: md5
       md5: 3e651a9a71b822f9a41558cb9adf136a
       size: 1784
-      isexec: true
     outs:
     - path: data/processed/features_ratings.parquet
       hash: md5
       md5: 7fce786158d9bd0cf3bb6e8329c67564
       size: 5083
   train:
-    cmd: python scripts/train.py  --epochs 2  --lr 0.001  --batch-size 1024  
-      --embedding-dim 32  --model-type torch_mlp
+    cmd: python scripts/train.py --epochs 10 --lr 0.001 --batch-size 1024 
+      --embedding-dim 32 --hidden-dim 128 --dropout 0.2 --model-type torch_mlp 
+      --val-split 0.1 --patience 3 --seed 42
     deps:
     - path: data/processed/features_ratings.parquet
       hash: md5
@@ -80,23 +74,28 @@ stages:
       size: 5083
     - path: scripts/train.py
       hash: md5
-      md5: 0c3865ed74469afd2d7e0aee3eba70ee
-      size: 3377
-      isexec: true
+      md5: 03899418b24a554331d266038515c9bb
+      size: 7585
     params:
       params.yaml:
         train.batch_size: 1024
+        train.dropout: 0.2
         train.embedding_dim: 32
-        train.epochs: 2
+        train.epochs: 10
+        train.hidden_dim: 128
         train.lr: 0.001
         train.model_type: torch_mlp
+        train.patience: 3
+        train.seed: 42
+        train.val_split: 0.1
     outs:
     - path: models/model.pth
       hash: md5
-      md5: 04dfd66ebb6ff56c5069d8f42ff132f3
-      size: 37309
+      md5: b25f3dbcbe93692b3f01ea4df537f412
+      size: 70513
   evaluate:
-    cmd: python scripts/evaluate.py
+    cmd: python scripts/evaluate.py --model-type torch_mlp --experiment-name 
+      movie-rec-sys-training --registry-model-name movie-rec-sys
     deps:
     - path: data/processed/features_ratings.parquet
       hash: md5
@@ -104,15 +103,19 @@ stages:
       size: 5083
     - path: models/model.pth
       hash: md5
-      md5: 04dfd66ebb6ff56c5069d8f42ff132f3
-      size: 37309
+      md5: b25f3dbcbe93692b3f01ea4df537f412
+      size: 70513
     - path: scripts/evaluate.py
       hash: md5
-      md5: 830c9ab5946892937e959bc77133a614
-      size: 2258
-      isexec: true
+      md5: 42c9cb248854ee15eddd9ecbd6e5cecf
+      size: 13142
+    params:
+      params.yaml:
+        mlflow.experiment_name: movie-rec-sys-training
+        mlflow.registry_model_name: movie-rec-sys
+        train.model_type: torch_mlp
     outs:
     - path: metrics.json
       hash: md5
-      md5: 63c5c26cc74d62f28b90a39e85556d47
-      size: 65
+      md5: 724768fd6dfb658974034fe4488e2565
+      size: 2838

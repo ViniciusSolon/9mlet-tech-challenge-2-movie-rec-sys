@@ -45,12 +45,13 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------
     # MLflow  (Etapa 3)
     # ------------------------------------------------------------------
-    mlflow_tracking_uri: str = "http://localhost:5000"
-    mlflow_experiment_name: str = "movielens-recommender"
+    mlflow_tracking_uri: str = "sqlite:///mlflow.db"
+    mlflow_experiment_name: str = "movie-rec-sys-training"
 
     # ------------------------------------------------------------------
     # DVC  (Etapa 3)
     # ------------------------------------------------------------------
+    # Alinhado a .dvc/config (remote local_remote).
     dvc_remote_url: str = "./dvc-storage"
 
     # ------------------------------------------------------------------

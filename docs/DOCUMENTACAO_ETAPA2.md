@@ -22,8 +22,9 @@ O `pyproject.toml` foi reestruturado para incluir **todas as dependências neces
 | Rede neural | `torch>=2.2` (via PyPI — compatível macOS Intel/ARM e Linux) | Etapa 4 — PyTorch |
 | Rastreamento | `mlflow>=2.18` | Etapa 3 — experimentos + registry |
 | Versionamento de dados | `dvc>=3.56` | Etapa 3 — pipeline DVC |
-| Engenharia de features | `bertopic>=0.16`, `sentence-transformers>=3.0` | Etapa 3 — `feature_eng` stage |
+| Engenharia de features (opcional) | `bertopic`, `sentence-transformers` via `uv sync --extra topics` | Extra `topics` — **não** exigido pelo PDF |
 | Dev | `pytest`, `pytest-cov`, `pytest-mock`, `ruff`, `pre-commit` | desenvolvimento |
+| Utilitário | `packaging` | comparação de versões em `validate_env.py` |
 | Opcional `s3` | `dvc[s3]` | Etapa 3 — remote S3 |
 | Opcional `gdrive` | `dvc[gdrive]` | Etapa 3 — remote GDrive |
 
@@ -44,11 +45,13 @@ uv lock
 O `uv.lock` foi gerado e commitado junto com o `pyproject.toml`. Garante que qualquer
 colaborador (ou pipeline CI/CD) instale exatamente as mesmas versões.
 
+> **Validação prática:** a instalação limpa foi testada em uma venv nova do workspace (`clean-venv`) e `scripts/validate_env.py` passou em 25/25 checks.
+
 **Para instalar o ambiente do zero:**
 
 ```bash
-# Instalar uv (se não tiver)
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# Instalar uv seguindo as instruções oficiais para o seu sistema operacional
+# https://docs.astral.sh/uv/getting-started/installation/
 
 # Clonar e sincronizar
 git clone <repo>
@@ -72,8 +75,8 @@ A classe `Settings` agora cobre todas as variáveis de ambiente do projeto:
 | `tmdb_language` | `TMDB_LANGUAGE` | `"en-US"` | Idioma das respostas TMDB |
 | `tmdb_min_interval_sec` | `TMDB_MIN_INTERVAL_SEC` | `0.26` | Rate limit (req/s) |
 | `tmdb_max_retries` | `TMDB_MAX_RETRIES` | `4` | Tentativas antes de desistir |
-| `mlflow_tracking_uri` | `MLFLOW_TRACKING_URI` | `"http://localhost:5000"` | Servidor MLflow |
-| `mlflow_experiment_name` | `MLFLOW_EXPERIMENT_NAME` | `"movielens-recommender"` | Experimento padrão |
+| `mlflow_tracking_uri` | `MLFLOW_TRACKING_URI` | `"sqlite:///mlflow.db"` | Backend local padrão; compose pode sobrescrever |
+| `mlflow_experiment_name` | `MLFLOW_EXPERIMENT_NAME` | `"movie-rec-sys-training"` | Experimento padrão |
 | `dvc_remote_url` | `DVC_REMOTE_URL` | `"./dvc-storage"` | Remote DVC local/S3 |
 | `data_dir` | `DATA_DIR` | `./data` | Raiz de dados |
 | `raw_data_path` | `RAW_DATA_PATH` | `./data/raw` | Dados brutos |
@@ -165,6 +168,17 @@ Reorganizado com seções comentadas para cada etapa do projeto:
 
 ---
 
+## Snapshot de dados versionados
+
+Os CSVs atualmente versionados em `data/raw/` são um snapshot de smoke test.
+Eles servem para reproduzir o pipeline no repositório, mas não substituem o
+MovieLens 20M completo.
+
+Para rodar a versão final com os dados completos, substitua os CSVs por uma
+cópia integral do MovieLens 20M e regenere `dvc.lock` no novo contexto.
+
+---
+
 ## Como reproduzir do zero (máquina nova)
 
 ```bash
@@ -173,14 +187,14 @@ git clone <repo-url>
 cd 9mlet-tech-challenge-2-movie-rec-sys
 git checkout feat/step-2-v2
 
-# 2. Instalar uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# 2. Instalar uv seguindo as instruções oficiais para o seu sistema operacional
+# https://docs.astral.sh/uv/getting-started/installation/
 
 # 3. Sincronizar dependências (usa uv.lock para versões exatas)
 uv sync
 
 # 4. Copiar .env e preencher as chaves
-cp .env.example .env
+python -c "from pathlib import Path; Path('.env').write_text(Path('.env.example').read_text(encoding='utf-8'), encoding='utf-8')"
 # editar .env com TMDB_API_KEY, etc.
 
 # 5. Validar

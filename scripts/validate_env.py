@@ -5,21 +5,16 @@ Usage
     python scripts/validate_env.py
 
 Exit code 0 means all checks passed; non-zero means at least one failed.
-Run this after ``uv sync`` to confirm a clean install on a new machine.
+Run this after ``uv sync`` (and ``uv sync --extra dev`` for tests/lint).
 """
 
 from __future__ import annotations
 
 import importlib
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Callable
-
-
-# ---------------------------------------------------------------------------
-# Result container
-# ---------------------------------------------------------------------------
 
 
 @dataclass
@@ -45,21 +40,15 @@ class Report:
         return [r for r in self.results if not r.passed]
 
     def print_summary(self) -> None:
-        ok = "\033[32m✓\033[0m"
-        fail = "\033[31m✗\033[0m"
-        for r in self.results:
-            symbol = ok if r.passed else fail
-            detail = f"  {r.message}" if r.message else ""
-            print(f"  {symbol}  {r.name}{detail}")
-
+        ok = "[OK]"
+        fail = "[X]"
+        for result in self.results:
+            symbol = ok if result.passed else fail
+            detail = f"  {result.message}" if result.message else ""
+            print(f"  {symbol}  {result.name}{detail}")
         total = len(self.results)
         passed = total - len(self.failed)
         print(f"\n  {passed}/{total} checks passed.")
-
-
-# ---------------------------------------------------------------------------
-# Individual checks
-# ---------------------------------------------------------------------------
 
 
 def check_python_version(report: Report) -> None:
@@ -80,8 +69,10 @@ def _import_check(
     package: str,
     min_version: str | None = None,
     attr: str = "__version__",
+    required: bool = True,
 ) -> None:
     """Try importing a package and optionally compare its version."""
+    label = f"import {package}" + ("" if required else " (optional)")
     try:
         mod = importlib.import_module(package)
         version = getattr(mod, attr, "?")
@@ -92,13 +83,25 @@ def _import_check(
             msg = f"{version}" + ("" if ok else f" — need >={min_version}")
         else:
             ok, msg = True, str(version)
-        report.add(CheckResult(name=f"import {package}", passed=ok, message=msg))
+        report.add(
+            CheckResult(
+                name=label,
+                passed=ok if required else True,
+                message=msg,
+            )
+        )
     except ImportError as exc:
-        report.add(CheckResult(name=f"import {package}", passed=False, message=str(exc)))
+        report.add(
+            CheckResult(
+                name=label,
+                passed=not required,
+                message=str(exc) if required else "not installed",
+            )
+        )
 
 
 def check_required_packages(report: Report) -> None:
-    """Verify all pipeline dependencies are importable."""
+    """Verify pipeline dependencies declared in pyproject.toml are importable."""
     packages: list[tuple[str, str | None]] = [
         ("pandas", "2.2"),
         ("numpy", "1.26"),
@@ -110,12 +113,13 @@ def check_required_packages(report: Report) -> None:
         ("httpx", "0.27"),
         ("pydantic_settings", "2.6"),
         ("pyarrow", "18.0"),
-        ("bertopic", "0.16"),
-        ("sentence_transformers", "3.0"),
-        ("yaml", None),  # pyyaml
+        ("packaging", "24.0"),
+        ("yaml", None),
     ]
     for pkg, min_ver in packages:
         _import_check(report, pkg, min_ver)
+    _import_check(report, "bertopic", "0.16", required=False)
+    _import_check(report, "sentence_transformers", "3.0", required=False)
 
 
 def check_cuda(report: Report) -> None:
@@ -125,15 +129,11 @@ def check_cuda(report: Report) -> None:
 
         available = torch.cuda.is_available()
         device_name = torch.cuda.get_device_name(0) if available else "N/A"
-        report.add(
-            CheckResult(
-                name="CUDA (optional)",
-                passed=True,
-                message=(
-                    "available — " + device_name if available else "not available (CPU mode)"
-                ),
-            )
-        )
+        if available:
+            message = f"available — {device_name}"
+        else:
+            message = "not available (CPU mode)"
+        report.add(CheckResult(name="CUDA (optional)", passed=True, message=message))
     except ImportError:
         report.add(
             CheckResult(
@@ -156,13 +156,16 @@ def check_paths(report: Report) -> None:
         root / "models",
         root / "configs",
         root / "src",
+        root / "dvc-storage",
     ]
-    for d in dirs:
+    for path in dirs:
+        if path.name == "dvc-storage" and not path.exists():
+            path.mkdir(parents=True, exist_ok=True)
         report.add(
             CheckResult(
-                name=f"path {d.relative_to(root)}",
-                passed=d.exists(),
-                message="" if d.exists() else "missing — run `mkdir -p`",
+                name=f"path {path.relative_to(root)}",
+                passed=path.exists(),
+                message="" if path.exists() else "missing",
             )
         )
 
@@ -205,11 +208,6 @@ def check_settings_load(report: Report) -> None:
         report.add(CheckResult(name="Settings load", passed=False, message=str(exc)))
 
 
-# ---------------------------------------------------------------------------
-# Runner
-# ---------------------------------------------------------------------------
-
-
 def run_all_checks() -> Report:
     """Execute every check and return a consolidated report."""
     report = Report()
@@ -232,9 +230,9 @@ def main() -> int:
     report = run_all_checks()
     report.print_summary()
     if report.failed:
-        print("\n\033[31mValidation FAILED.\033[0m Fix the items above and re-run.\n")
+        print("\nValidation FAILED. Fix the items above and re-run.\n")
         return 1
-    print("\n\033[32mAll checks passed.\033[0m Environment is ready.\n")
+    print("\nAll checks passed. Environment is ready.\n")
     return 0
 
 

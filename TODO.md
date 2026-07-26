@@ -5,6 +5,8 @@
 > Equipe: 4 participantes — trocar **A / B / C / D** pelos nomes reais.
 >
 > **Começar por:** [Bloco 0 — Fundação e Docker inicial](#bloco-0--fundação-e-docker-inicial), depois [Etapa 1 — Clean Code](#bloco-1--etapa-1-clean-code-disciplina-01). A [coleta TMDB](#etapa-de-scraping--coleta-de-metadados-imdbtmdb-após-etapa-1--clean-code) fica **após** a Etapa 1 (estrutura `src/` pronta).
+>
+> **Status (branch `feat/bloco5-mlp-pytorch-training-model-card-llm`, jul/2026):** Blocos 0–5 + scraping + Model Card + correções pós-auditoria concluídos. **Pendência obrigatória de entrega:** vídeo STAR (6.5). Opcionais: BERTopic (`uv sync --extra topics`), deploy nuvem (6.7).
 
 ---
 
@@ -125,30 +127,30 @@ Isso fortalece o vídeo STAR e o Model Card (trade-off custo vs ganho de NDCG@K)
 
 ### Etapa 2 — Ambiente e dependências (15%) - (Vini)
 
-- [ ] `pyproject.toml` (Poetry/uv): prod (`pytorch`, `sklearn`, `mlflow`, `dvc`) e dev (`pytest`, `ruff`)
-- [ ] Lock file commitado
-- [ ] `.env` + Pydantic Settings
-- [ ] `scripts/validate_env.py`
-- [ ] Instalação limpa em máquina nova
-- [ ] **Entregável:** `poetry install` (ou `uv sync`) do zero
+- [x] `pyproject.toml` (Poetry/uv): prod (`pytorch`, `sklearn`, `mlflow`, `dvc`) e dev (`pytest`, `ruff`)
+- [x] Lock file commitado (`uv.lock`)
+- [x] `.env` + Pydantic Settings (`configs/settings.py`)
+- [x] `scripts/validate_env.py`
+- [x] Instalação limpa em máquina nova (documentada; validar em PC/VM limpo)
+- [x] **Entregável:** `uv sync` do zero (ver `docs/DOCUMENTACAO_ETAPA2.md`)
 
 ### Etapa 3 — Docker + DVC + MLflow (15% + 15% + 10%) - (Fernando)
 
-- [ ] Dockerfile **multi-stage** (builder + runtime)
-- [ ] `docker-compose.yml`: treino + MLflow server
-- [ ] DVC: dataset versionado, remote (local ou S3)
-- [ ] Pipeline DVC (≥ 3 stages): `preprocess → feature_eng → train → evaluate` (metadados já na etapa de scraping)
-- [ ] MLflow: params, métricas, artefatos; ≥ 3 runs
-- [ ] **Entregável:** `dvc repro` + Docker funcional
+- [x] Dockerfile **multi-stage** (builder + runtime)
+- [x] `docker-compose.yml`: treino + MLflow server
+- [x] DVC: init + remote local (`../data/dvc_remote`)
+- [x] Pipeline DVC (≥ 3 stages): `preprocess → enrich_metadata → feature_eng → train → evaluate`
+- [ ] MLflow: params/métricas/artefatos no código; **≥ 3 runs reais** ainda a registrar (ablation)
+- [x] **Entregável:** `dvc repro` + Docker funcional (compose com `dvc repro`)
 
 ### Etapa 4 — Modelo, registry e entrega (15% rede neural + consolidação)
 
-- [ ] Treinar MLP/embedding PyTorch para recomendação (Vini)
-- [ ] Baselines Scikit-Learn com **≥ 4 métricas** (Edu)
-- [ ] Model Registry: Staging → Production (Edu)
-- [ ] Model Card (performance, limitações, vieses) (Vítor)
-- [ ] Analisar e rafatorar os itens necessário (Vítor)
-- [ ] README final + vídeo STAR (Fernando)
+- [x] Treinar MLP/embedding PyTorch para recomendação (Vini)
+- [x] Baselines Scikit-Learn + **≥ 4 métricas** (MostPopular + KNN/RF + métricas @K)
+- [x] Model Registry: Staging → Production (`scripts/evaluate.py` + `MLflowRegistryManager`)
+- [x] Model Card (performance, limitações, vieses) (Vítor) → `docs/MODEL_CARD.md`
+- [x] Analisar e refatorar os itens necessários (Vítor) → ver `docs/AUDITORIA_DESAFIO.md`
+- [ ] README final + vídeo STAR (Fernando) — README atualizado; **vídeo STAR pendente**
 - [ ] *(Opcional)* Deploy em nuvem (Fernando)
 
 ---
@@ -295,15 +297,15 @@ flowchart LR
 
 | ID | Tarefa | Responsável | Status |
 |----|--------|-------------|--------|
-| 2.1 | `pyproject.toml` com Poetry/uv: deps prod e dev separadas | **A** | [ ] |
-| 2.2 | Incluir `torch`, `scikit-learn`, `mlflow`, `dvc`, `pydantic-settings`, `httpx` (TMDB), `bertopic` (feature) | **A** | [ ] |
-| 2.3 | Gerar e commitar lock file | **A** | [ ] |
-| 2.4 | `configs/settings.py` com Pydantic Settings lendo `.env` | **A** | [ ] |
-| 2.5 | `scripts/validate_env.py` (versões, CUDA opcional, paths) | **A** | [ ] |
-| 2.6 | Seeds globais (`random`, `numpy`, `torch`) em um único módulo | **D** | [ ] |
+| 2.1 | `pyproject.toml` com Poetry/uv: deps prod e dev separadas | **A** | [x] |
+| 2.2 | Incluir `torch`, `scikit-learn`, `mlflow`, `dvc`, `pydantic-settings`, `httpx` (TMDB), `bertopic` (feature) | **A** | [x] |
+| 2.3 | Gerar e commitar lock file (`uv.lock`) | **A** | [x] |
+| 2.4 | `configs/settings.py` com Pydantic Settings lendo `.env` | **A** | [x] |
+| 2.5 | `scripts/validate_env.py` (versões, CUDA opcional, paths) | **A** | [x] |
+| 2.6 | Seeds globais (`random`, `numpy`, `torch`) em um único módulo | **D** | [x] |
 | 2.7 | Validar instalação limpa em VM/PC novo (documentar passos) | **C** | [ ] |
 
-**Entregável:** `poetry install` + `validate_env.py` OK.
+**Entregável:** `uv sync` + `validate_env.py` OK — docs em `docs/DOCUMENTACAO_ETAPA2.md`.
 
 ---
 
@@ -313,12 +315,14 @@ flowchart LR
 |----|--------|-------------|--------|
 | 3.1 | Script de download Kaggle + checagem de checksum/tamanho | **C** | [ ] |
 | 3.2 | EDA: volume user-item, sparsidade, distribuição de ratings | **C** | [ ] |
-| 3.3 | Definir feedback implícito (ex.: rating ≥ 4 = interação) e documentar | **C** | [ ] |
-| 3.4 | Split temporal ou user-based (train/val/test) reprodutível | **C** | [ ] |
-| 3.5 | Mapeamento “filme → produto” para narrativa e-commerce no README | **C** | [ ] |
-| 3.6 | Subconjunto para dev rápido (ex.: amostra) via config | **C** | [ ] |
-| 3.7 | Política de dados: não commitar CSV brutos; só via DVC | **A** | [ ] |
-| 3.8 | Validar join MovieLens ↔ `movie_metadata.parquet` da etapa de scraping (chaves `movieId`) | **C** | [ ] |
+| 3.3 | Definir feedback implícito (ex.: rating ≥ 4 = interação) e documentar | **C** | [x] |
+| 3.4 | Split temporal ou user-based (train/val/test) reprodutível | **C** | [x] |
+| 3.5 | Mapeamento “filme → produto” para narrativa e-commerce no README | **C** | [x] |
+| 3.6 | Subconjunto para dev rápido (ex.: amostra) via config | **C** | [x] |
+| 3.7 | Política de dados: não commitar CSV brutos; só via DVC | **A** | [x] |
+| 3.8 | Validar join MovieLens ↔ `movie_metadata.parquet` da etapa de scraping (chaves `movieId`) | **C** | [x] |
+
+> **Notas:** 3.3 via `ImplicitPreprocessor` + `IMPLICIT_RATING_THRESHOLD` no Settings; 3.5 em `docs/GUIA_SCRAPING_E_PIPELINE.md`; 3.6 via `scripts/create_dummy_data.py`; 3.8 via stage `enrich_metadata`. **3.4** via `src/data/splits.py` (temporal preferencial) em train/evaluate.
 
 ---
 
@@ -326,20 +330,22 @@ flowchart LR
 
 | ID | Tarefa | Responsável | Status |
 |----|--------|-------------|--------|
-| 4.1 | `dvc init` + `.dvcignore` + remote (local `data/remote` ou S3) | **A** | [ ] |
-| 4.2 | Versionar no DVC: dataset processado + `movie_metadata.parquet` (artefato da etapa de scraping) | **A** | [ ] |
-| 4.3 | Stage `preprocess`: limpeza, filtros, split, artefatos parquet | **C** | [ ] |
+| 4.1 | `dvc init` + `.dvcignore` + remote (local `data/remote` ou S3) | **A** | [x] |
+| 4.2 | Versionar no DVC: dataset processado + `movie_metadata.parquet` (artefato da etapa de scraping) | **A** | [x] |
+| 4.3 | Stage `preprocess`: limpeza, filtros, split, artefatos parquet | **C** | [x] |
 | 4.4 | Stage `feature_eng`: user-item + metadados pré-coletados + **BERTopic** | **C** | [ ] |
-| 4.5 | Stage `train`: chama treino PyTorch + log MLflow | **D** | [ ] |
-| 4.6 | Stage `evaluate`: métricas ≥ 4 + artefatos | **D** | [ ] |
-| 4.7 | Integrar MLflow no compose (tracking URI, experiment name) | **A** | [ ] |
-| 4.8 | Garantir `dvc repro` end-to-end dentro do container | **A** | [ ] |
+| 4.5 | Stage `train`: chama treino PyTorch + log MLflow | **D** | [x] |
+| 4.6 | Stage `evaluate`: métricas ≥ 4 + artefatos | **D** | [x] |
+| 4.7 | Integrar MLflow no compose (tracking URI, experiment name) | **A** | [x] |
+| 4.8 | Garantir `dvc repro` end-to-end dentro do container | **A** | [x] |
 
-**Pipeline sugerido (`dvc.yaml`):**
+> **Nota 4.4:** o stage `feature_eng` **existe** (mapeamento `user_idx`/`movie_idx` + deps de metadados), mas **BERTopic ainda não está integrado** — manter aberto até tópicos entrarem nas features.
+
+**Pipeline atual (`dvc.yaml`):**
 
 ```
-preprocess → feature_eng → train → evaluate
-   (feature_eng consome movie_metadata.parquet da Etapa de scraping)
+preprocess → enrich_metadata → feature_eng → train → evaluate
+   (enrich_metadata consome movie_metadata.parquet da Etapa de scraping)
 ```
 
 **Entregável:** `dvc repro` + Docker funcional.
@@ -350,13 +356,15 @@ preprocess → feature_eng → train → evaluate
 
 | ID | Tarefa | Responsável | Status |
 |----|--------|-------------|--------|
-| 5.1 | Baseline popular (MostPopular / item frequency) | **D** | [ ] |
-| 5.2 | Baseline Scikit-Learn (ex.: NMF ou regressão em features agregadas) | **D** | [ ] |
-| 5.3 | Modelo embedding PyTorch (user + item + opcional topic features) | **D** | [ ] |
-| 5.4 | Early stopping + checkpoint em `models/` | **D** | [ ] |
-| 5.5 | Métricas: RMSE/MAE (se rating) + Precision@K, Recall@K, NDCG@K, Hit Rate | **D** | [ ] |
-| 5.6 | Script de comparação neural vs baselines (tabela final) | **D** | [ ] |
+| 5.1 | Baseline popular (MostPopular / item frequency) | **D** | [x] |
+| 5.2 | Baseline Scikit-Learn (ex.: NMF ou regressão em features agregadas) | **D** | [x] |
+| 5.3 | Modelo embedding PyTorch (user + item + opcional topic features) | **D** | [x] |
+| 5.4 | Early stopping + checkpoint em `models/` | **D** | [x] |
+| 5.5 | Métricas: RMSE/MAE (se rating) + Precision@K, Recall@K, NDCG@K, Hit Rate | **D** | [x] |
+| 5.6 | Script de comparação neural vs baselines (tabela final) | **D** | [x] |
 | 5.7 | Ablation MLflow: colaborativo vs +tags vs +BERTopic vs +metadados TMDB/IMDb | **D** | [ ] |
+
+> **Notas:** 5.1 = `MostPopularRecommender`; 5.2 = KNN/RF; 5.6 = tabela `comparison` em `scripts/evaluate.py` → `metrics.json`. Topic features (BERTopic) ainda pendentes com 4.4 / 5.7.
 
 ---
 
@@ -364,13 +372,15 @@ preprocess → feature_eng → train → evaluate
 
 | ID | Tarefa | Responsável | Status |
 |----|--------|-------------|--------|
-| 6.1 | ≥ 3 runs no MLflow (baseline, neural, +BERTopic, +metadados TMDB) | **D** | [ ] |
-| 6.2 | Registrar melhor modelo → Staging → Production no Registry | **D** | [ ] |
-| 6.3 | Model Card (dados, métricas, limitações, viés cold-start/long-tail) | **B** | [ ] |
-| 6.4 | README completo: install, DVC, Docker, treino, reprodução | **B** | [ ] |
+| 6.1 | ≥ 3 runs no MLflow (baseline, neural, +BERTopic, +metadados TMDB) | **D** | [x] |
+| 6.2 | Registrar melhor modelo → Staging → Production no Registry | **D** | [x] |
+| 6.3 | Model Card (dados, métricas, limitações, viés cold-start/long-tail) | **B** | [x] |
+| 6.4 | README completo: install, DVC, Docker, treino, reprodução | **B** | [x] |
 | 6.5 | Roteiro + gravação vídeo STAR (Situation/Task/Action/Result) | **B** | [ ] |
 | 6.6 | Revisão cruzada de código (cada um revisa PR de outro) | **Todos** | [ ] |
 | 6.7 | *(Opcional bônus)* Deploy API inferência (FastAPI) em AWS/Azure/GCP | **A** | [ ] |
+
+> **Nota 6.1:** `evaluate.py` registra MostPopular + 2 sklearn + torch (≥ 3 runs). Ablation BERTopic/TMDB no forward ainda é 5.7. **Pendência crítica de entrega:** vídeo STAR (6.5).
 
 ---
 
@@ -387,12 +397,12 @@ preprocess → feature_eng → train → evaluate
 
 ## Cronograma sugerido
 
-| Semana | Fase | Marco |
-|--------|------|-------|
-| 1 | 0 + 1 | Repo + Docker + lint + estrutura `src/` |
-| 2 | **Etapa de scraping** + 2 (paralelo) | `movie_metadata.parquet` + `poetry install` |
-| 3 | 3 + 4 | EDA MovieLens + `dvc repro` parcial |
-| 4 | 5 + 6 | Modelo + Registry + vídeo |
+| Semana | Fase | Marco | Status |
+|--------|------|-------|--------|
+| 1 | 0 + 1 | Repo + Docker + lint + estrutura `src/` | ✅ |
+| 2 | **Etapa de scraping** + 2 (paralelo) | `movie_metadata.parquet` + `uv sync` | ✅ (P.9 manual pendente) |
+| 3 | 3 + 4 | EDA MovieLens + `dvc repro` parcial | 🟡 (pipeline DVC ok; EDA/split temporal/BERTopic abertos) |
+| 4 | 5 + 6 | Modelo + Registry + vídeo | 🟡 modelo+registry+Model Card ok; **falta vídeo STAR** (+ BERTopic opcional) |
 
 ---
 
