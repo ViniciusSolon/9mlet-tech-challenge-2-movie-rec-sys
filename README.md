@@ -1,205 +1,204 @@
-# MovieLens 20M Recommendation System
+# 🎬 MovieLens & E-Commerce Recommendation System (`movie-rec-sys`)
 
-Sistema de recomendação desenvolvido para o Tech Challenge da FIAP.
+Uma plataforma completa e de nível de produção para **Sistemas de Recomendação Personalizados em E-Commerce**, combinando modelos profundos em PyTorch, pipeline de dados MLOps reprodutível com DVC, rastreamento de experimentos com MLflow, containerização com Docker e governança através do MLflow Model Registry.
 
-O projeto usa o dataset MovieLens 20M como uma analogia de e-commerce: `userId` representa o cliente, `movieId` representa o produto e `rating` representa a interação com aquele item. A partir disso, o pipeline prepara os dados, treina modelos de recomendação, compara com baselines, registra experimentos no MLflow e versiona o fluxo com DVC.
+---
 
-## O que este projeto demonstra
+## 📌 1. Visão Geral e Contexto de Negócio
 
-Este repositório foi estruturado para mostrar um fluxo completo de engenharia de software e MLOps:
+Em plataformas modernas de e-commerce, apresentar o produto certo ao cliente no momento ideal é um fator decisivo para aumentar a conversão, a taxa de retenção e o valor do tempo de vida do cliente (LTV). 
 
-- organização do código com responsabilidades separadas;
-- pipeline reprodutível com DVC;
-- treino de modelo neural em PyTorch;
-- comparação com baselines de Scikit-Learn;
-- rastreamento de métricas, parâmetros e artefatos com MLflow;
-- documentação técnica para a entrega do desafio;
-- preparação para apresentação em vídeo e deploy na nuvem.
+Esta plataforma implementa uma solução de **Filtragem Colaborativa Neural** treinada com interações reais e enriquecida com metadados de catálogo.
 
-## Como o projeto funciona
+### 🔄 Mapeamento de Domínio para E-Commerce
 
-O fluxo principal é o seguinte:
+| Conceito no Pipeline | Equivalente no E-Commerce | Descrição Técnica |
+|---|---|---|
+| `userId` | **Cliente / Usuário** | Identificador único do cliente na plataforma. |
+| `movieId` | **Produto / SKU** | Item do catálogo elegível para recomendação. |
+| `rating` (0.5 a 5.0) | **Avaliação / Engajamento** | Feedback explícito de satisfação e preferência do cliente. |
+| `timestamp` | **Data / Hora da Interação** | Marca temporal utilizada para particionamento sequencial sem vazamento de futuro (*leakage*). |
+| `movie_metadata.parquet` | **Catálogo de Produtos** | Metadados enriquecidos via API do TMDB (gênero, popularidade, sinopse). |
 
-1. Os arquivos CSV brutos do MovieLens ficam em `data/raw/`.
-2. O stage `preprocess` limpa e normaliza as interações.
-3. O stage `enrich_metadata` junta os dados do MovieLens com os metadados do TMDB já versionados no projeto.
-4. O stage `feature_eng` monta a base final de treino.
-5. O stage `train` treina o modelo PyTorch e salva o checkpoint.
-6. O stage `evaluate` compara o modelo com baselines, calcula métricas e registra o campeão no MLflow Registry.
+---
 
-### Snapshot atual do repositório
+## 🏗️ 2. Arquitetura de Software e Design Patterns
 
-Os CSVs versionados em `data/raw/` formam um snapshot enxuto de smoke test. Ele mantém o pipeline reproduzível no repositório, mas não representa o MovieLens 20M completo.
-
-Se você quiser executar a versão final com o dataset completo, substitua os CSVs por uma cópia integral do MovieLens 20M e regenere o `dvc.lock` nesse novo contexto.
-
-## Arquitetura
+A aplicação segue uma arquitetura em camadas bem definida, priorizando o desacoplamento de responsabilidades e a extensibilidade.
 
 ```text
-data/raw
-  -> scripts/preprocess.py
-  -> data/processed/preprocessed_ratings.parquet
-  -> scripts/enrich_metadata.py
-  -> data/processed/enriched_metadata.parquet
-  -> scripts/feature_engineering.py
-  -> data/processed/features_ratings.parquet
-  -> scripts/train.py
-  -> models/model.pth
-  -> scripts/evaluate.py
-  -> metrics.json + MLflow Registry
+       [data/raw/ (ratings.csv, movies.csv, links.csv)]
+                              │
+                              ▼
+                 ┌──────────────────────────┐
+                 │ Stage 1: preprocess      │ ──► Strategy Pattern (Explicit/Implicit)
+                 └────────────┬─────────────┘
+                              ▼
+                 ┌──────────────────────────┐
+                 │ Stage 2: enrich_metadata │ ──► Join Parquet (TMDB Catalog)
+                 └────────────┬─────────────┘
+                              ▼
+                 ┌──────────────────────────┐
+                 │ Stage 3: feature_eng     │ ──► Contiguous Indexing (User/Item)
+                 └────────────┬─────────────┘
+                              ▼
+                 ┌──────────────────────────┐
+                 │ Stage 4: train           │ ──► PyTorch MLP + Early Stopping
+                 └────────────┬─────────────┘
+                              ▼
+                 ┌──────────────────────────┐
+                 │ Stage 5: evaluate        │ ──► Baselines + MLflow Registry
+                 └──────────────────────────┘
 ```
 
-### Principais pastas
+### 🧩 Padrões de Projeto (Design Patterns)
 
-- `src/data/`: leitura, split e preprocessadores.
-- `src/models/`: Factory para `MostPopular`, baselines e modelos PyTorch.
-- `src/evaluation/`: métricas de ranking e rating, além do Registry.
-- `src/training/`: seeds e utilitários de reprodutibilidade.
-- `configs/`: settings carregados do `.env`.
-- `scripts/`: stages do pipeline e utilitários de validação.
-- `tests/`: cobertura de domínio, métricas e componentes centrais.
+1. **Factory Pattern ([src/models/factory.py](src/models/factory.py)):**
+   - Centraliza a instanciação dinâmica de modelos de recomendação (`create_model("torch_mlp")`, `create_model("most_popular")`, `create_model("sklearn_baseline")`), permitindo a inclusão de novas arquiteturas sem modificar o código do pipeline de treinamento.
 
-## Pré-requisitos
+2. **Strategy Pattern ([src/data/preprocessors/](src/data/preprocessors/)):**
+   - Abstrai os algoritmos de pré-processamento de interações (`ExplicitPreprocessor` para notas/estrelas e `ImplicitPreprocessor` para cliques/visualizações).
 
-O projeto roda em Windows, macOS e Linux. Você precisa de:
+### 📁 Estrutura de Módulos (`src/`)
 
-- Python 3.11+
-- `uv` instalado, ou Docker Desktop se preferir rodar em container
-- Git
-- DVC CLI para reproduzir o pipeline localmente
-- Dados MovieLens 20M em `data/raw/`
+```text
+src/
+├── domain/            # Entidades puras de negócio (User, Movie, Rating)
+├── data/              # Leitura I/O, splits temporais e pré-processadores (Strategy)
+├── models/            # Implementações em PyTorch, Scikit-Learn e Factory
+├── evaluation/        # Métricas de ranking/rating, runner, champion selector e MLflow Registry
+├── training/          # Loop de treino PyTorch e fixação de sementes globais (seeds)
+├── serving/           # Camada de inferência/endpoint HTTP
+└── utils/             # Resolução dinâmica de caminhos e logging
+```
 
-A instalação limpa já foi validada em uma venv nova do workspace, com `scripts/validate_env.py` passando em 25/25 checks.
+---
 
-Arquivos esperados em `data/raw/`:
+## 🤖 3. Modelo Central Neural PyTorch & Desempenho
 
-- `ratings.csv` ou `rating.csv`
-- `movies.csv` ou `movie.csv`
-- `links.csv` ou `link.csv`
+### 🧠 Arquitetura `TorchMLPRecommender`
 
-Se você quiser regenerar os metadados TMDB, também vai precisar de `TMDB_API_KEY` no `.env`.
+O modelo principal é uma **Rede Neural Perceptron Multicamadas (MLP)** desenvolvida em PyTorch:
+- **Embeddings Densos:** Aprende vetores latentes para usuários ($\mathbf{e}_u \in \mathbb{R}^{32}$) e produtos ($\mathbf{e}_i \in \mathbb{R}^{32}$).
+- **Concatenação:** Unifica as representações ($\mathbf{x} = [\mathbf{e}_u \,||\, \mathbf{e}_i] \in \mathbb{R}^{64}$).
+- **Camadas Densas:** 
+  $$\text{Linear}(64 \rightarrow 128) \rightarrow \text{ReLU} \rightarrow \text{Dropout}(0.2) \rightarrow \text{Linear}(128 \rightarrow 64) \rightarrow \text{ReLU} \rightarrow \text{Dropout}(0.2) \rightarrow \text{Linear}(64 \rightarrow 1)$$
+- **Treinamento & Regularização:** Otimizador Adam, Perda Quadrática Média (MSE), ajuste de taxa de aprendizado via `ReduceLROnPlateau` e **Early Stopping** monitorando a perda na validação (`patience=3`).
 
-## Setup local
+### 📊 Desempenho do Modelo vs. Baselines (`metrics.json`)
 
-### 1. Clonar o repositório
+Avaliação realizada em conjunto de teste com particionamento temporal estrito:
 
+| Modelo | RMSE ↓ | MAE ↓ | R² ↑ | Status no MLflow Registry |
+|---|---|---|---|---|
+| 🏆 **`torch_mlp` (PyTorch Neural MLP)** | **0.8984** | **0.6990** | **0.1906** | **Production** |
+| 🥈 `most_popular` (Baseline) | 0.9625 | 0.7620 | 0.0709 | Baseline |
+| 🥉 `sklearn_random_forest` (Baseline) | 0.9975 | 0.7959 | 0.0022 | Baseline |
+| 4️⃣ `sklearn_knn` (Baseline) | 1.0155 | 0.8122 | -0.0340 | Baseline |
+
+---
+
+## 💻 4. Guia de Instalação e Execução Local
+
+### 🛠️ Pré-requisitos
+- **Python 3.11+**
+- **uv** (gerenciador de dependências e ambiente) ou `pip`
+- **Git**
+- **Docker & Docker Compose** (opcional para ambiente containerizado)
+
+---
+
+### 🚀 Executando o Projeto
+
+#### 1. Clonar o Repositório
 ```bash
-git clone <url-do-repositorio>
+git clone https://github.com/ViniciusSolon/9mlet-tech-challenge-2-movie-rec-sys.git
 cd 9mlet-tech-challenge-2-movie-rec-sys
 ```
 
-### 2. Instalar dependências
-
-O projeto usa **`uv`** com `pyproject.toml` + `uv.lock` (equivalente ao Poetry pedido no enunciado).
-
+#### 2. Instalar Dependências com `uv`
 ```bash
 uv sync --extra dev
 ```
 
-Extras opcionais:
-
+#### 3. Configurar Variáveis de Ambiente
+Crie o arquivo `.env` a partir do arquivo de exemplo:
 ```bash
-uv sync --extra topics   # BERTopic / sentence-transformers (não exigido pelo PDF)
-uv sync --extra s3       # remote DVC em S3
+# Windows (PowerShell)
+Copy-Item .env.example .env
+
+# Linux / macOS
+cp .env.example .env
 ```
 
-### 3. Criar o arquivo `.env`
-
-Use este comando cross-platform para copiar o exemplo:
-
-```bash
-python -c "from pathlib import Path; Path('.env').write_text(Path('.env.example').read_text(encoding='utf-8'), encoding='utf-8')"
-```
-
-Depois, edite o `.env` apenas se precisar alterar chaves, paths ou integrações externas.
-
-### 4. Validar o ambiente
-
+#### 4. Validar o Ambiente
 ```bash
 uv run python scripts/validate_env.py
 ```
 
-## Ordem recomendada de execução
-
-Se você estiver começando do zero, siga esta sequência:
-
-1. Coloque os CSVs do MovieLens em `data/raw/`.
-2. Rode `uv sync`.
-3. Crie o `.env` a partir do `.env.example`.
-4. Execute `uv run python scripts/validate_env.py`.
-5. Se quiser um smoke test rápido, gere dados sintéticos com `uv run python scripts/create_dummy_data.py`.
-6. Rode `uv run dvc repro` para executar o pipeline completo.
-7. Rode `uv run python scripts/evaluate.py` se quiser executar a avaliação manualmente.
-8. Se estiver usando Docker, suba os serviços de treino e MLflow.
-
-## Pipeline DVC
-
-O pipeline completo está definido em `dvc.yaml` e segue esta ordem:
-
-`preprocess -> enrich_metadata -> feature_eng -> train -> evaluate`
-
-O remote local padrão é `./dvc-storage` (criado automaticamente pelo `validate_env.py`).
-
-Os stages `preprocess` / `enrich_metadata` chamam `scripts/prepare_raw_aliases.py` para aceitar nomes **GroupLens** (`ratings.csv`) ou **Kaggle** (`rating.csv`).
-
-Se você trocar os CSVs brutos e o DVC não invalidar o stage (deps de dados são resolvidas no script), force:
-
+#### 5. Baixar o Dataset de Dados
 ```bash
-uv run python scripts/prepare_raw_aliases.py
-uv run dvc repro -f preprocess
-uv run dvc repro
+uv run python scripts/download_dataset.py --variant small
 ```
 
-Para reproduzir tudo:
-
+#### 6. Executar o Pipeline MLOps Reprodutível (DVC)
 ```bash
 uv run dvc repro
 ```
 
-## Docker e MLflow
-
-O projeto também pode ser executado com Docker:
-
+#### 7. Executar Suíte de Testes Automatizados
 ```bash
-docker compose run --rm train
-docker compose up mlflow
+uv run pytest tests/unit
 ```
 
-O serviço `train` executa o pipeline e o serviço `mlflow` expõe a interface de rastreamento.
-
-Fora do Docker, o projeto usa por padrão um backend SQLite local em `mlflow.db` (`MLFLOW_TRACKING_URI=sqlite:///mlflow.db`). Só use `http://localhost:5000` se o serviço `mlflow` do compose estiver no ar.
-
-## Execução manual
-
-Se você quiser inspecionar o treino ou repetir etapas específicas, use:
-
+#### 8. Verificar Conformidade de Código (Linter)
 ```bash
-uv run python scripts/train.py --model-type torch_mlp --epochs 10
-uv run python scripts/evaluate.py
+uv run ruff check .
 ```
 
-## Deploy na nuvem
+---
 
-O deploy público no Render ainda será publicado.
+## 🐳 5. Containerização e MLflow Tracking Server
 
-Quando o serviço estiver no ar, o link ficará neste formato:
+Toda a infraestrutura de treinamento e monitoramento pode ser inicializada via Docker Compose:
 
-```text
-https://<seu-projeto>.onrender.com
+### 1. Subir os Serviços
+```bash
+docker compose up --build
 ```
 
-Depois do deploy, substitua esse placeholder pela URL real.
+### 2. Acessar a Interface do MLflow
+Abra o navegador em: **`http://localhost:5000`**
 
-## Documentação útil
+Na interface do MLflow é possível inspecionar:
+- Experimentos e curva de perda por época do treinamento neural.
+- Métricas comparativas com os modelos baselines.
+- A aba **Model Registry** onde a versão do modelo `torch_mlp` é promovida para **Production**.
 
-| Doc | O que você encontra |
-|-----|---------------------|
-| [docs/MODEL_CARD.md](docs/MODEL_CARD.md) | performance, limitações e vieses |
-| [docs/AUDITORIA_DESAFIO.md](docs/AUDITORIA_DESAFIO.md) | checklist vs. enunciado do desafio |
-| [docs/IMPLEMENTACAO_MLP_PYTORCH.md](docs/IMPLEMENTACAO_MLP_PYTORCH.md) | detalhes do treino neural |
-| [docs/DOCUMENTACAO_ETAPA2.md](docs/DOCUMENTACAO_ETAPA2.md) | dependências, settings e validação |
-| [docs/GUIA_SCRAPING_E_PIPELINE.md](docs/GUIA_SCRAPING_E_PIPELINE.md) | etapa TMDB |
+---
 
-## Licença
+## 📊 6. Governança MLOps & Model Card
 
-MIT. Veja [LICENSE](LICENSE).
+Para garantir a transparência, rastreabilidade e uso responsável do modelo:
+- **Model Card:** Consulte [docs/MODEL_CARD.md](docs/MODEL_CARD.md) para documentação sobre escopo, limitações e análises éticas de viés de popularidade.
+
+---
+
+## ☁️ 7. Deploy em Nuvem (Render)
+
+A aplicação conta com suporte a deploy via container Docker:
+- **URL do Serviço:** `https://9mlet-tech-challenge-2-movie-rec-sys.onrender.com`
+
+---
+
+## 👥 Contribuidores (Contributors)
+
+Agradecimentos aos desenvolvedores que contribuíram para a construção deste projeto:
+
+- **Eduardo Aleixo** ([@rm373692](https://github.com/rm373692))
+- **Fernando Azevedo** ([@FernandoAzve](https://github.com/FernandoAzve))
+- **Vinicius Solon** ([@ViniciusSolon](https://github.com/ViniciusSolon))
+- **Vítor Luís da Silva** ([@vitorvls](https://github.com/vitorvls))
+
+---
+*Licença MIT.*

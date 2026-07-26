@@ -1,68 +1,78 @@
 schema: '2.0'
 stages:
   preprocess:
-    cmd: python scripts/preprocess.py --strategy explicit
+    cmd: python scripts/prepare_raw_aliases.py && python scripts/preprocess.py 
+      --strategy explicit
     deps:
-    - path: data/raw/ratings.csv
+    - path: scripts/prepare_raw_aliases.py
       hash: md5
-      md5: a8d38cd6d397f0c4eb6715168d3a2f2e
-      size: 123
+      md5: 751f4f8265eee13098a15e183422929c
+      size: 706
     - path: scripts/preprocess.py
       hash: md5
       md5: 44887c03458efa5b0d5b4c376a0b8137
       size: 1495
+    - path: src/data/external/movielens_io.py
+      hash: md5
+      md5: 3e89e609e9bd79d6b2d79b80676d4bdc
+      size: 1638
+    - path: src/data/raw_aliases.py
+      hash: md5
+      md5: 01a736d8aad15b1e4dec3dce9f8b27b4
+      size: 1888
     params:
       params.yaml:
         preprocess.strategy: explicit
     outs:
     - path: data/processed/preprocessed_ratings.parquet
       hash: md5
-      md5: 05572d4666259f48ade77a34f1b66030
-      size: 3929
+      md5: a371407cd75b1b83abc1395418da33de
+      size: 831806
   enrich_metadata:
-    cmd: python scripts/enrich_metadata.py
+    cmd: python scripts/prepare_raw_aliases.py && python 
+      scripts/enrich_metadata.py
     deps:
     - path: data/processed/movie_metadata.parquet
       hash: md5
       md5: deb6c0c4effcdb1e94420b13d5e50cdc
       size: 7839353
-    - path: data/raw/links.csv
-      hash: md5
-      md5: a26edd06b3c5b8a688c2fb7ac02be4b5
-      size: 71
-    - path: data/raw/movies.csv
-      hash: md5
-      md5: 8bc447d0b12c087d57b6be8dbf7e2b7c
-      size: 117
     - path: scripts/enrich_metadata.py
       hash: md5
-      md5: a793f5c39919384b5d5d7364f56381be
-      size: 1699
+      md5: b6652cec3a3bf3bfd4053b76bc3b7564
+      size: 1759
+    - path: scripts/prepare_raw_aliases.py
+      hash: md5
+      md5: 751f4f8265eee13098a15e183422929c
+      size: 706
+    - path: src/data/external/movielens_io.py
+      hash: md5
+      md5: 3e89e609e9bd79d6b2d79b80676d4bdc
+      size: 1638
     outs:
     - path: data/processed/enriched_metadata.parquet
       hash: md5
-      md5: 815636837e4ef5d0d1040f1f254cac04
-      size: 13702
+      md5: a1a0721b2f92001ceeb71afa88ce94b4
+      size: 3145930
   feature_eng:
     cmd: python scripts/feature_engineering.py
     deps:
     - path: data/processed/enriched_metadata.parquet
       hash: md5
-      md5: 815636837e4ef5d0d1040f1f254cac04
-      size: 13702
+      md5: a1a0721b2f92001ceeb71afa88ce94b4
+      size: 3145930
     - path: data/processed/preprocessed_ratings.parquet
       hash: md5
-      md5: 05572d4666259f48ade77a34f1b66030
-      size: 3929
+      md5: a371407cd75b1b83abc1395418da33de
+      size: 831806
     - path: scripts/feature_engineering.py
       hash: md5
-      md5: 3e651a9a71b822f9a41558cb9adf136a
-      size: 1784
+      md5: db18badf2d47eb7ed009a494569ac455
+      size: 2284
     outs:
     - path: data/processed/features_ratings.parquet
       hash: md5
-      md5: 7fce786158d9bd0cf3bb6e8329c67564
-      size: 5083
+      md5: af39b53bbee18836e637e03b1f15810f
+      size: 1405644
   train:
     cmd: python scripts/train.py --epochs 10 --lr 0.001 --batch-size 1024 
       --embedding-dim 32 --hidden-dim 128 --dropout 0.2 --model-type torch_mlp 
@@ -70,12 +80,16 @@ stages:
     deps:
     - path: data/processed/features_ratings.parquet
       hash: md5
-      md5: 7fce786158d9bd0cf3bb6e8329c67564
-      size: 5083
+      md5: af39b53bbee18836e637e03b1f15810f
+      size: 1405644
     - path: scripts/train.py
       hash: md5
-      md5: 03899418b24a554331d266038515c9bb
-      size: 7585
+      md5: 57085817bcbc369219ee5c5adafe9597
+      size: 7040
+    - path: src/training/loop.py
+      hash: md5
+      md5: 1b93e4334f10b59136e313c86e588583
+      size: 3403
     params:
       params.yaml:
         train.batch_size: 1024
@@ -91,24 +105,32 @@ stages:
     outs:
     - path: models/model.pth
       hash: md5
-      md5: b25f3dbcbe93692b3f01ea4df537f412
-      size: 70513
+      md5: b119c0cd5ac661246c6402873a169333
+      size: 1394801
   evaluate:
     cmd: python scripts/evaluate.py --model-type torch_mlp --experiment-name 
       movie-rec-sys-training --registry-model-name movie-rec-sys
     deps:
     - path: data/processed/features_ratings.parquet
       hash: md5
-      md5: 7fce786158d9bd0cf3bb6e8329c67564
-      size: 5083
+      md5: af39b53bbee18836e637e03b1f15810f
+      size: 1405644
     - path: models/model.pth
       hash: md5
-      md5: b25f3dbcbe93692b3f01ea4df537f412
-      size: 70513
+      md5: b119c0cd5ac661246c6402873a169333
+      size: 1394801
     - path: scripts/evaluate.py
       hash: md5
-      md5: 42c9cb248854ee15eddd9ecbd6e5cecf
-      size: 13142
+      md5: 2f228409c551c2729e26eef28bcde3fd
+      size: 5385
+    - path: src/evaluation/champion.py
+      hash: md5
+      md5: 365dcaf1d08790b69dbc433f53d2e3cb
+      size: 1005
+    - path: src/evaluation/runner.py
+      hash: md5
+      md5: 05931e7e5028eec6bd43d34f6df748db
+      size: 10945
     params:
       params.yaml:
         mlflow.experiment_name: movie-rec-sys-training
@@ -117,5 +139,5 @@ stages:
     outs:
     - path: metrics.json
       hash: md5
-      md5: 724768fd6dfb658974034fe4488e2565
-      size: 2838
+      md5: d7bbc45e77dcd5023648abecb46b0487
+      size: 3093
