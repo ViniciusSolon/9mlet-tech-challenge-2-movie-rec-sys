@@ -11,7 +11,7 @@ COPY src ./src
 COPY scripts ./scripts
 COPY configs ./configs
 
-RUN uv sync --frozen --no-dev
+RUN uv sync --frozen
 
 FROM python:3.11-slim AS runtime
 

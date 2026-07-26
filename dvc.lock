@@ -82,14 +82,17 @@ stages:
       hash: md5
       md5: af39b53bbee18836e637e03b1f15810f
       size: 1405644
+      isexec: true
     - path: scripts/train.py
       hash: md5
-      md5: 57085817bcbc369219ee5c5adafe9597
-      size: 7040
+      md5: 2ccdbe861ad6daff207f2e4e24bdde8e
+      size: 7203
+      isexec: true
     - path: src/training/loop.py
       hash: md5
       md5: 1b93e4334f10b59136e313c86e588583
       size: 3403
+      isexec: true
     params:
       params.yaml:
         train.batch_size: 1024
@@ -105,7 +108,7 @@ stages:
     outs:
     - path: models/model.pth
       hash: md5
-      md5: b119c0cd5ac661246c6402873a169333
+      md5: 5a757d06ab07562c0709b163cd401182
       size: 1394801
   evaluate:
     cmd: python scripts/evaluate.py --model-type torch_mlp --experiment-name 
@@ -115,22 +118,26 @@ stages:
       hash: md5
       md5: af39b53bbee18836e637e03b1f15810f
       size: 1405644
+      isexec: true
     - path: models/model.pth
       hash: md5
-      md5: b119c0cd5ac661246c6402873a169333
+      md5: 5a757d06ab07562c0709b163cd401182
       size: 1394801
     - path: scripts/evaluate.py
       hash: md5
       md5: 2f228409c551c2729e26eef28bcde3fd
       size: 5385
+      isexec: true
     - path: src/evaluation/champion.py
       hash: md5
       md5: 365dcaf1d08790b69dbc433f53d2e3cb
       size: 1005
+      isexec: true
     - path: src/evaluation/runner.py
       hash: md5
       md5: 05931e7e5028eec6bd43d34f6df748db
       size: 10945
+      isexec: true
     params:
       params.yaml:
         mlflow.experiment_name: movie-rec-sys-training
@@ -139,5 +146,5 @@ stages:
     outs:
     - path: metrics.json
       hash: md5
-      md5: d7bbc45e77dcd5023648abecb46b0487
-      size: 3093
+      md5: 17da3dbe3e777d5563c29d6eb8bd6f39
+      size: 2995
