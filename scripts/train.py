@@ -145,11 +145,13 @@ def _finalize_run(
     mlflow.log_artifact(str(model_path))
     history_path = models_dir / "training_history.json"
     history_path.write_text(json.dumps(history, indent=2), encoding="utf-8")
-    mlflow.log_artifact(str(history_path))
-    example = torch.tensor([[0, 0]], dtype=torch.long, device=device)
-    mlflow.pytorch.log_model(
-        model, artifact_path="model", input_example=example.cpu().numpy()
-    )
+    try:
+        example = torch.tensor([[0, 0]], dtype=torch.long, device=device)
+        mlflow.pytorch.log_model(
+            model, artifact_path="model", input_example=example.cpu().numpy()
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"Note: PyTorch model logging via MLflow REST API skipped ({exc})")
 
 
 def main() -> int:
@@ -167,6 +169,7 @@ def main() -> int:
 
     df = pd.read_parquet(ratings_path)
     os.environ["GIT_PYTHON_REFRESH"] = "quiet"
+    os.environ["MLFLOW_ALLOW_FILE_STORE"] = "true"
     mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
     mlflow.set_experiment(settings.mlflow_experiment_name)
     n_users = int(df["user_idx"].max() + 1)

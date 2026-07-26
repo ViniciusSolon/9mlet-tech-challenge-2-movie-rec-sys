@@ -7,8 +7,8 @@
     "comparison": [
         {
             "model": "torch_mlp",
-            "rmse": 0.898446601710543,
-            "mae": 0.6990209094924617,
+            "rmse": 0.8983914349855379,
+            "mae": 0.6989853584827509,
             "precision@10": 0.0,
             "recall@10": 0.0,
             "ndcg@10": 0.0,
@@ -34,8 +34,8 @@
         },
         {
             "model": "sklearn_knn",
-            "rmse": 1.0155105238783944,
-            "mae": 0.8122222780737911,
+            "rmse": 1.0154917606185616,
+            "mae": 0.8121908615663014,
             "precision@10": null,
             "recall@10": null,
             "ndcg@10": null,
@@ -45,7 +45,7 @@
     "candidates": [
         {
             "name": "most_popular",
-            "run_id": "4d5b5aaa675c45d79de41a90c4d73a68",
+            "run_id": "2d24a3ac45b44dafa1ad9e41fa309ba6",
             "artifact_path": "model",
             "metrics": {
                 "rmse": 0.9625594461485298,
@@ -56,18 +56,18 @@
         },
         {
             "name": "sklearn_knn",
-            "run_id": "69297cf188e24e65809c3cd508fa75ec",
+            "run_id": "5b6599bcf09345d0b156731f3c8e2d97",
             "artifact_path": "model",
             "metrics": {
-                "rmse": 1.0155105238783944,
-                "mae": 0.8122222780737911,
-                "mse": 1.031261624107771,
-                "r2": -0.034037167988812955
+                "rmse": 1.0154917606185616,
+                "mae": 0.8121908615663014,
+                "mse": 1.0312235158841863,
+                "r2": -0.03399895720052082
             }
         },
         {
             "name": "sklearn_random_forest",
-            "run_id": "8bbf256a95f34f80a566ff963f411047",
+            "run_id": "c40948e2d6ab4acf9e448eeee460dfc8",
             "artifact_path": "model",
             "metrics": {
                 "rmse": 0.9975399133116458,
@@ -78,13 +78,13 @@
         },
         {
             "name": "torch_mlp",
-            "run_id": "b8f1ba558a164cae94ed33b760f448b4",
+            "run_id": "42ad88cc411c4c58b9d5a4af339b1763",
             "artifact_path": "model",
             "metrics": {
-                "rmse": 0.898446601710543,
-                "mae": 0.6990209094924617,
-                "mse": 0.8072062961252232,
-                "r2": 0.19062118388220228,
+                "rmse": 0.8983914349855379,
+                "mae": 0.6989853584827509,
+                "mse": 0.8071071704553738,
+                "r2": 0.19072057633948958,
                 "precision@10": 0.0,
                 "recall@10": 0.0,
                 "ndcg@10": 0.0,
@@ -94,8 +94,8 @@
     ],
     "champion": {
         "name": "torch_mlp",
-        "run_id": "b8f1ba558a164cae94ed33b760f448b4",
-        "version": 5,
+        "run_id": "42ad88cc411c4c58b9d5a4af339b1763",
+        "version": 1,
         "stage": "production"
     }
 }
