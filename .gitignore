@@ -26,6 +26,7 @@ ENV/
 # ==============================================================================
 # Raw datasets (MovieLens CSVs, ZIPs)
 data/raw/*.csv
+!data/raw/movies.csv
 data/raw/**/*.csv
 data/raw/*.zip
 data/raw/external_metadata/*
@@ -35,6 +36,8 @@ data/raw/external_metadata/*
 data/processed/*
 !data/processed/.gitkeep
 !data/processed/movie_metadata.parquet
+!data/processed/features_ratings.parquet
+!data/processed/enriched_metadata.parquet
 
 # Execution Logs
 data/logs/*
@@ -44,6 +47,7 @@ data/logs/*
 # Model Checkpoints & Artifacts
 models/*
 !models/.gitkeep
+!models/model.pth
 artifacts/
 
 # MLflow Experiment Tracking Database & Runs
