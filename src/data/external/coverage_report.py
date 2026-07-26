@@ -48,6 +48,7 @@ def coverage_to_markdown(
 
     def share(count: float | int) -> float:
         return round(100.0 * float(count) / total, 2) if total else 0.0
+
     return f"""# Relatório de cobertura — metadados TMDB (P.8)
 
 > Gerado a partir de `{path_str}`.

@@ -5,8 +5,8 @@ stages:
     deps:
     - path: data/raw/ratings.csv
       hash: md5
-      md5: a8d38cd6d397f0c4eb6715168d3a2f2e
-      size: 123
+      md5: 325a6f09399d1c45671f187505e1a100
+      size: 2483723
     - path: scripts/preprocess.py
       hash: md5
       md5: 44887c03458efa5b0d5b4c376a0b8137
@@ -17,8 +17,8 @@ stages:
     outs:
     - path: data/processed/preprocessed_ratings.parquet
       hash: md5
-      md5: 05572d4666259f48ade77a34f1b66030
-      size: 3929
+      md5: a371407cd75b1b83abc1395418da33de
+      size: 831806
   enrich_metadata:
     cmd: python scripts/enrich_metadata.py
     deps:
@@ -28,41 +28,41 @@ stages:
       size: 7839353
     - path: data/raw/links.csv
       hash: md5
-      md5: a26edd06b3c5b8a688c2fb7ac02be4b5
-      size: 71
+      md5: 316913f95cdad64c745ca22f3630e230
+      size: 197979
     - path: data/raw/movies.csv
       hash: md5
-      md5: 8bc447d0b12c087d57b6be8dbf7e2b7c
-      size: 117
+      md5: ed94fab72b62442ef8150d9446e000d6
+      size: 494431
     - path: scripts/enrich_metadata.py
       hash: md5
-      md5: a793f5c39919384b5d5d7364f56381be
-      size: 1699
+      md5: b6652cec3a3bf3bfd4053b76bc3b7564
+      size: 1759
     outs:
     - path: data/processed/enriched_metadata.parquet
       hash: md5
-      md5: 815636837e4ef5d0d1040f1f254cac04
-      size: 13702
+      md5: a1a0721b2f92001ceeb71afa88ce94b4
+      size: 3145930
   feature_eng:
     cmd: python scripts/feature_engineering.py
     deps:
     - path: data/processed/enriched_metadata.parquet
       hash: md5
-      md5: 815636837e4ef5d0d1040f1f254cac04
-      size: 13702
+      md5: a1a0721b2f92001ceeb71afa88ce94b4
+      size: 3145930
     - path: data/processed/preprocessed_ratings.parquet
       hash: md5
-      md5: 05572d4666259f48ade77a34f1b66030
-      size: 3929
+      md5: a371407cd75b1b83abc1395418da33de
+      size: 831806
     - path: scripts/feature_engineering.py
       hash: md5
-      md5: 3e651a9a71b822f9a41558cb9adf136a
-      size: 1784
+      md5: 6e133cad631cacad81cab8d218fdb911
+      size: 1762
     outs:
     - path: data/processed/features_ratings.parquet
       hash: md5
-      md5: 7fce786158d9bd0cf3bb6e8329c67564
-      size: 5083
+      md5: dc13d7f36f2366e95c6d715e3639eb5a
+      size: 1043794
   train:
     cmd: python scripts/train.py --epochs 10 --lr 0.001 --batch-size 1024 
       --embedding-dim 32 --hidden-dim 128 --dropout 0.2 --model-type torch_mlp 
@@ -70,12 +70,12 @@ stages:
     deps:
     - path: data/processed/features_ratings.parquet
       hash: md5
-      md5: 7fce786158d9bd0cf3bb6e8329c67564
-      size: 5083
+      md5: dc13d7f36f2366e95c6d715e3639eb5a
+      size: 1043794
     - path: scripts/train.py
       hash: md5
-      md5: 03899418b24a554331d266038515c9bb
-      size: 7585
+      md5: 40dd38dadc61e6dd80e90113a3d18345
+      size: 7587
     params:
       params.yaml:
         train.batch_size: 1024
@@ -91,24 +91,24 @@ stages:
     outs:
     - path: models/model.pth
       hash: md5
-      md5: b25f3dbcbe93692b3f01ea4df537f412
-      size: 70513
+      md5: b119c0cd5ac661246c6402873a169333
+      size: 1394801
   evaluate:
     cmd: python scripts/evaluate.py --model-type torch_mlp --experiment-name 
       movie-rec-sys-training --registry-model-name movie-rec-sys
     deps:
     - path: data/processed/features_ratings.parquet
       hash: md5
-      md5: 7fce786158d9bd0cf3bb6e8329c67564
-      size: 5083
+      md5: dc13d7f36f2366e95c6d715e3639eb5a
+      size: 1043794
     - path: models/model.pth
       hash: md5
-      md5: b25f3dbcbe93692b3f01ea4df537f412
-      size: 70513
+      md5: b119c0cd5ac661246c6402873a169333
+      size: 1394801
     - path: scripts/evaluate.py
       hash: md5
-      md5: 42c9cb248854ee15eddd9ecbd6e5cecf
-      size: 13142
+      md5: 6d98cf6db602e310ed72565dee99f44a
+      size: 13305
     params:
       params.yaml:
         mlflow.experiment_name: movie-rec-sys-training
@@ -117,5 +117,5 @@ stages:
     outs:
     - path: metrics.json
       hash: md5
-      md5: 724768fd6dfb658974034fe4488e2565
-      size: 2838
+      md5: fc5a3461c3afe2180e8c2325a6471ffb
+      size: 3093

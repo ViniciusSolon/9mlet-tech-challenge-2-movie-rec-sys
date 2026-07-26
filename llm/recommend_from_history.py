@@ -6,8 +6,8 @@ metadados TMDB já no projeto para montar recomendações personalizadas
 quando o usuário ainda não tem ``user_idx`` no treino (cold start).
 
 Uso:
-    python llm/recommend_from_history.py --input llm/examples/historico_exemplo.json
-    python llm/recommend_from_history.py --input llm/examples/historico_exemplo.json --k 10
+    python llm/recommend_from_history.py --input hist.json
+    python llm/recommend_from_history.py --input hist.json --k 10
 """
 
 from __future__ import annotations
@@ -41,7 +41,9 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help="JSON com historico: [{titulo, nota}, ...]",
     )
-    parser.add_argument("--k", type=int, default=None, help="Quantidade de recomendações.")
+    parser.add_argument(
+        "--k", type=int, default=None, help="Quantidade de recomendações."
+    )
     parser.add_argument(
         "--model",
         type=Path,
@@ -269,9 +271,7 @@ def main() -> int:
 
     profile = _user_profile(model, matched)
     seen = {row["movieId"] for row in matched}
-    recommendations = _recommend(
-        model, profile, catalog, movie_index, seen, k=k
-    )
+    recommendations = _recommend(model, profile, catalog, movie_index, seen, k=k)
     _print_report(user_label, matched, missing, recommendations)
 
     out_path = args.input.with_name(args.input.stem + "_recomendacoes.json")

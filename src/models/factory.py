@@ -54,4 +54,3 @@ def create_model(kind: str | ModelKind, **kwargs: Any) -> RecommenderModel:
 
     msg = f"unknown model kind: {kind}"
     raise ValueError(msg)
-

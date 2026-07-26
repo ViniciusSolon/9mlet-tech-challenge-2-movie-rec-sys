@@ -44,8 +44,10 @@ class Report:
         return [r for r in self.results if not r.passed]
 
     def print_summary(self) -> None:
-        ok = "\033[32m✓\033[0m"
-        fail = "\033[31m✗\033[0m"
+        if sys.platform == "win32":
+            ok, fail = "[OK]", "[FAIL]"
+        else:
+            ok, fail = "\033[32m✓\033[0m", "\033[31m✗\033[0m"
         for r in self.results:
             symbol = ok if r.passed else fail
             detail = f"  {r.message}" if r.message else ""
@@ -79,6 +81,7 @@ def _import_check(
     package: str,
     min_version: str | None = None,
     attr: str = "__version__",
+    optional: bool = False,
 ) -> None:
     """Try importing a package and optionally compare its version."""
     try:
@@ -88,35 +91,44 @@ def _import_check(
             from packaging.version import Version  # noqa: PLC0415
 
             ok = Version(str(version)) >= Version(min_version)
-            msg = f"{version}" + ("" if ok else f" — need >={min_version}")
+            msg = f"{version}" + ("" if ok else f" - need >={min_version}")
         else:
             ok, msg = True, str(version)
         report.add(CheckResult(name=f"import {package}", passed=ok, message=msg))
     except ImportError as exc:
-        report.add(
-            CheckResult(name=f"import {package}", passed=False, message=str(exc))
-        )
+        if optional:
+            report.add(
+                CheckResult(
+                    name=f"import {package} (optional)",
+                    passed=True,
+                    message="not installed (optional nlp feature)",
+                )
+            )
+        else:
+            report.add(
+                CheckResult(name=f"import {package}", passed=False, message=str(exc))
+            )
 
 
 def check_required_packages(report: Report) -> None:
     """Verify all pipeline dependencies are importable."""
-    packages: list[tuple[str, str | None]] = [
-        ("pandas", "2.2"),
-        ("numpy", "1.26"),
-        ("scipy", "1.13"),
-        ("sklearn", "1.5"),
-        ("torch", "2.2"),
-        ("mlflow", "2.18"),
-        ("dvc", "3.56"),
-        ("httpx", "0.27"),
-        ("pydantic_settings", "2.6"),
-        ("pyarrow", "18.0"),
-        ("bertopic", "0.16"),
-        ("sentence_transformers", "3.0"),
-        ("yaml", None),  # pyyaml
+    packages: list[tuple[str, str | None, bool]] = [
+        ("pandas", "2.2", False),
+        ("numpy", "1.26", False),
+        ("scipy", "1.13", False),
+        ("sklearn", "1.5", False),
+        ("torch", "2.2", False),
+        ("mlflow", "2.18", False),
+        ("dvc", "3.56", False),
+        ("httpx", "0.27", False),
+        ("pydantic_settings", "2.6", False),
+        ("pyarrow", "18.0", False),
+        ("bertopic", "0.16", True),
+        ("sentence_transformers", "3.0", True),
+        ("yaml", None, False),  # pyyaml
     ]
-    for pkg, min_ver in packages:
-        _import_check(report, pkg, min_ver)
+    for pkg, min_ver, is_opt in packages:
+        _import_check(report, pkg, min_ver, optional=is_opt)
 
 
 def check_cuda(report: Report) -> None:
@@ -131,8 +143,7 @@ def check_cuda(report: Report) -> None:
                 name="CUDA (optional)",
                 passed=True,
                 message=(
-                    "available — "
-                    + device_name
+                    "available — " + device_name
                     if available
                     else "not available (CPU mode)"
                 ),
@@ -232,13 +243,13 @@ def run_all_checks() -> Report:
 
 def main() -> int:
     """Entry point."""
-    print("\n=== validate_env.py — environment sanity check ===\n")
+    print("\n=== validate_env.py - environment sanity check ===\n")
     report = run_all_checks()
     report.print_summary()
     if report.failed:
-        print("\n\033[31mValidation FAILED.\033[0m Fix the items above and re-run.\n")
+        print("\nValidation FAILED. Fix the items above and re-run.\n")
         return 1
-    print("\n\033[32mAll checks passed.\033[0m Environment is ready.\n")
+    print("\nAll checks passed. Environment is ready.\n")
     return 0
 
 

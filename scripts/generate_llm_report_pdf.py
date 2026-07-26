@@ -31,7 +31,9 @@ class ReportPDF(FPDF):
             return
         self.set_font("Calibri", "B", 9)
         self.set_text_color(*GRAY)
-        self.cell(0, 8, "FIAP Tech Challenge 02 — Teste pasta llm/ (caso Ana)", align="L")
+        self.cell(
+            0, 8, "FIAP Tech Challenge 02 — Teste pasta llm/ (caso Ana)", align="L"
+        )
         self.ln(4)
         self.set_draw_color(*TEAL)
         self.set_line_width(0.4)
@@ -71,7 +73,12 @@ def _banner(pdf: ReportPDF) -> None:
     pdf.cell(0, 8, _clean("Teste de usabilidade - pasta llm/"), ln=True)
     pdf.set_x(15)
     pdf.set_font(FONT_NAME, "", 11)
-    pdf.cell(0, 7, _clean("Movie Rec Sys - FIAP Tech Challenge Fase 02 - Julho/2026"), ln=True)
+    pdf.cell(
+        0,
+        7,
+        _clean("Movie Rec Sys - FIAP Tech Challenge Fase 02 - Julho/2026"),
+        ln=True,
+    )
     pdf.ln(18)
 
 
@@ -107,7 +114,9 @@ def _bullet(pdf: ReportPDF, text: str) -> None:
     pdf.multi_cell(0, 5.5, _clean(f"-  {text}"))
 
 
-def _callout(pdf: ReportPDF, title: str, body: str, color: tuple[int, int, int]) -> None:
+def _callout(
+    pdf: ReportPDF, title: str, body: str, color: tuple[int, int, int]
+) -> None:
     pdf.set_fill_color(*LIGHT)
     pdf.set_draw_color(*color)
     pdf.set_line_width(0.8)
@@ -244,7 +253,12 @@ def build() -> Path:
     for i, row in enumerate(top):
         _table_row(
             pdf,
-            [(row[0], 10, "C"), (row[1], 95, "L"), (row[2], 20, "C"), (row[3], 55, "C")],
+            [
+                (row[0], 10, "C"),
+                (row[1], 95, "L"),
+                (row[2], 20, "C"),
+                (row[3], 55, "C"),
+            ],
             fill=i % 2 == 0,
         )
     pdf.ln(3)

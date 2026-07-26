@@ -62,9 +62,7 @@ def ndcg_at_k(recommended: list[int], relevant: set[int], k: int) -> float:
         return 0.0
     top_k = recommended[:k]
     dcg = sum(
-        1.0 / math.log2(rank + 2)
-        for rank, item in enumerate(top_k)
-        if item in relevant
+        1.0 / math.log2(rank + 2) for rank, item in enumerate(top_k) if item in relevant
     )
     ideal_hits = min(len(relevant), k)
     idcg = sum(1.0 / math.log2(rank + 2) for rank in range(ideal_hits))

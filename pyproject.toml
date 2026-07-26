@@ -9,6 +9,7 @@ dependencies = [
     "httpx>=0.27",
     "pandas>=2.2",
     "pyarrow>=18.0",
+    "packaging>=24.0",
     # Config
     "pydantic-settings>=2.6",
     "pyyaml>=6.0",
@@ -22,15 +23,16 @@ dependencies = [
     "mlflow>=2.18",
     # Pipeline & data versioning (Etapa 3)
     "dvc>=3.56",
-    # Feature engineering — BERTopic (Etapa 3 / feature_eng stage)
-    "bertopic>=0.16",
-    "sentence-transformers>=3.0",
 ]
 
 [project.optional-dependencies]
 # DVC with cloud storage backends (Etapa 3 — remote opcional)
 s3 = ["dvc[s3]>=3.56"]
 gdrive = ["dvc[gdrive]>=3.56"]
+nlp = [
+    "bertopic>=0.16",
+    "sentence-transformers>=3.0",
+]
 
 dev = [
     "pre-commit>=3.7",

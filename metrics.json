@@ -6,18 +6,9 @@
     },
     "comparison": [
         {
-            "model": "sklearn_random_forest",
-            "rmse": 1.69,
-            "mae": 1.69,
-            "precision@10": null,
-            "recall@10": null,
-            "ndcg@10": null,
-            "hit_rate@10": null
-        },
-        {
             "model": "torch_mlp",
-            "rmse": 1.7892700731754303,
-            "mae": 1.7892700731754303,
+            "rmse": 0.898446601710543,
+            "mae": 0.6990209094924617,
             "precision@10": 0.0,
             "recall@10": 0.0,
             "ndcg@10": 0.0,
@@ -25,8 +16,17 @@
         },
         {
             "model": "most_popular",
-            "rmse": 2.0,
-            "mae": 2.0,
+            "rmse": 0.9625594461485298,
+            "mae": 0.7620126405907115,
+            "precision@10": null,
+            "recall@10": null,
+            "ndcg@10": null,
+            "hit_rate@10": null
+        },
+        {
+            "model": "sklearn_random_forest",
+            "rmse": 0.9975399133116458,
+            "mae": 0.7959467739207465,
             "precision@10": null,
             "recall@10": null,
             "ndcg@10": null,
@@ -34,8 +34,8 @@
         },
         {
             "model": "sklearn_knn",
-            "rmse": 2.25,
-            "mae": 2.25,
+            "rmse": 1.0155105238783944,
+            "mae": 0.8122222780737911,
             "precision@10": null,
             "recall@10": null,
             "ndcg@10": null,
@@ -45,46 +45,46 @@
     "candidates": [
         {
             "name": "most_popular",
-            "run_id": "abf3b1bfcbd442eb81945b17be391c48",
+            "run_id": "d496ce118f7a4080a3834084d70ab3ab",
             "artifact_path": "model",
             "metrics": {
-                "rmse": 2.0,
-                "mae": 2.0,
-                "mse": 4.0,
-                "r2": NaN
+                "rmse": 0.9625594461485298,
+                "mae": 0.7620126405907115,
+                "mse": 0.9265206873697645,
+                "r2": 0.07098566915085869
             }
         },
         {
             "name": "sklearn_knn",
-            "run_id": "ebce1b7731f641aab76039657ec946b4",
+            "run_id": "fbbfa025494a447194f12e489661bee7",
             "artifact_path": "model",
             "metrics": {
-                "rmse": 2.25,
-                "mae": 2.25,
-                "mse": 5.0625,
-                "r2": NaN
+                "rmse": 1.0155105238783944,
+                "mae": 0.8122222780737911,
+                "mse": 1.031261624107771,
+                "r2": -0.034037167988812955
             }
         },
         {
             "name": "sklearn_random_forest",
-            "run_id": "3c389798764241ec8efdc5a6513aff7d",
+            "run_id": "d58559d4744d40d5ae9ea4d27cdd2427",
             "artifact_path": "model",
             "metrics": {
-                "rmse": 1.69,
-                "mae": 1.69,
-                "mse": 2.8560999999999996,
-                "r2": NaN
+                "rmse": 0.9975399133116458,
+                "mae": 0.7959467739207465,
+                "mse": 0.9950858786498058,
+                "r2": 0.0022359410930870016
             }
         },
         {
             "name": "torch_mlp",
-            "run_id": "f243d11660bf4a948231903db023323d",
+            "run_id": "6f3cd058653c40018e600794273c134f",
             "artifact_path": "model",
             "metrics": {
-                "rmse": 1.7892700731754303,
-                "mae": 1.7892700731754303,
-                "mse": 3.2014873947612097,
-                "r2": NaN,
+                "rmse": 0.898446601710543,
+                "mae": 0.6990209094924617,
+                "mse": 0.8072062961252232,
+                "r2": 0.19062118388220228,
                 "precision@10": 0.0,
                 "recall@10": 0.0,
                 "ndcg@10": 0.0,
@@ -93,9 +93,9 @@
         }
     ],
     "champion": {
-        "name": "sklearn_random_forest",
-        "run_id": "3c389798764241ec8efdc5a6513aff7d",
-        "version": 2,
+        "name": "torch_mlp",
+        "run_id": "6f3cd058653c40018e600794273c134f",
+        "version": 4,
         "stage": "production"
     }
 }

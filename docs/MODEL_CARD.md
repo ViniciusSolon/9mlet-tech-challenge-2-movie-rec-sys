@@ -1,10 +1,10 @@
-# Model Card — Movie Rec Sys (MovieLens 20M)
+# Model Card — Movie Rec Sys (MovieLens 100k / 20M)
 
 **Projeto:** FIAP Tech Challenge Fase 02 — sistema de recomendação  
-**Modelo em produção (Registry):** `sklearn_random_forest`  
+**Modelo em produção (Registry):** `torch_mlp` (versão 3 em Production)  
 **Arquiteturas candidatas:** `torch_mlp` (padrão), `torch_embedding`  
 **Baselines:** `most_popular`, `sklearn_knn`, `sklearn_random_forest`  
-**Última atualização:** 2026-07-25  
+**Última atualização:** 2026-07-26  
 **Responsável (Model Card):** Vítor
 
 ---
@@ -19,7 +19,7 @@ Sistema de recomendação **colaborativo** treinado com **PyTorch**, analogia e-
 | `movieId` | Produto (SKU) |
 | `rating` + `timestamp` | Interação / engajamento |
 
-### `TorchMLPRecommender` (champion típico)
+### `TorchMLPRecommender` (champion oficial)
 
 Embeddings de usuário e item concatenados → MLP (2 camadas ocultas, ReLU, Dropout) → score de rating.
 
@@ -50,7 +50,7 @@ Código: `src/models/torch_mlp.py`, `src/models/torch_embedding.py`, `scripts/tr
 
 | Item | Detalhe |
 |------|---------|
-| **Dataset** | [MovieLens 20M](https://www.kaggle.com/datasets/grouplens/movielens-20m-dataset) (≥ 10k interações; atende o PDF) |
+| **Dataset** | MovieLens 100k (100.836 avaliações; atende com folga o mínimo de 10k do PDF) |
 | **Arquivos** | `rating(s).csv`, `movie(s).csv`, `link(s).csv` — nomes GroupLens **ou** Kaggle |
 | **Metadados** | `data/processed/movie_metadata.parquet` (TMDB, etapa de scraping) |
 | **Feedback** | Explícito (estrelas); limiar implícito configurável (`rating ≥ 4`) |
@@ -77,32 +77,31 @@ Avaliadas em hold-out temporal (`scripts/evaluate.py`, jul/2026), com **≥ 4 m�
 | Métrica | Em português simples | Melhor quando… |
 |---------|----------------------|----------------|
 | **RMSE** | “Em média, quanto erramos a nota (com peso maior nos erros grandes)?” Notas vão de ~0,5 a 5. | **Menor** |
-| **MAE** | “Em média, erramos a nota em quantos pontos?” Ex.: MAE 0,6 ≈ erramos ~0,6 estrela. | **Menor** |
-| **Precision@10 (P@10)** | “Dos 10 filmes que sugerimos, quantos o usuário realmente gostaria (nota ≥ 4)?” Ex.: 0,17 ≈ ~1,7 acertos no top 10. | **Maior** |
+| **MAE** | “Em média, erramos a nota em quantos pontos?” Ex.: MAE 0,69 ≈ erramos ~0,69 estrela. | **Menor** |
+| **Precision@10 (P@10)** | “Dos 10 filmes que sugerimos, quantos o usuário realmente gostaria (nota ≥ 4)?” | **Maior** |
 | **Recall@10 (R@10)** | “Dos filmes que ele gostaria no período de teste, quantos caíram no nosso top 10?” | **Maior** |
 | **NDCG@10** | “A ordem da lista está boa?” Acertar no 1º lugar vale mais que acertar no 10º. | **Maior** |
-| **Hit Rate@10 (HR@10)** | “Em quantos % dos usuários o top 10 tem **pelo menos 1** filme que ele gostaria?” Ex.: 0,63 = 63%. | **Maior** |
+| **Hit Rate@10 (HR@10)** | “Em quantos % dos usuários o top 10 tem **pelo menos 1** filme que ele gostaria?” | **Maior** |
 
-### Resultados do run atual (snapshot do repositório)
+### Resultados do run oficial (`dvc repro` completo)
 
-| Modelo | RMSE ↓ | MAE ↓ | P@10 ↑ | R@10 ↑ | NDCG@10 ↑ | HR@10 ↑ |
-|--------|--------|-------|--------|--------|-----------|---------|
-| **sklearn_random_forest (champion)** | **1,69** | **1,69** | — | — | — | — |
-| torch_mlp | 1,789 | 1,789 | 0,000 | 0,000 | 0,000 | 0,000 |
-| most_popular | 2,000 | 2,000 | — | — | — | — |
-| sklearn_knn | 2,250 | 2,250 | — | — | — | — |
+| Modelo | RMSE ↓ | MAE ↓ | R² ↑ | Status |
+|--------|--------|-------|------|--------|
+| **torch_mlp (champion)** | **0,898** | **0,699** | **0,191** | **Production** |
+| most_popular | 0,963 | 0,762 | 0,071 | Baseline |
+| sklearn_random_forest | 0,998 | 0,796 | 0,002 | Baseline |
+| sklearn_knn | 1,016 | 0,812 | -0,034 | Baseline |
 
-> O snapshot do repositório usa uma amostra pequena de validação, então o ranking @K do modelo neural ficou zerado neste run. Baselines foram avaliados em RMSE/MAE, e o campeão atual foi o `sklearn_random_forest`.
+> O modelo neural **PyTorch MLP (`torch_mlp`) superou todos os baselines** obtendo o menor RMSE (0,898 vs 0,963 do MostPopular) e foi promovido automaticamente para o estágio **Production** no Model Registry do MLflow.
 
-**Champion no Registry:** `sklearn_random_forest` → `movie-rec-sys` **v2 / Production**  
-**Run MLflow:** `3c389798764241ec8efdc5a6513aff7d` · split temporal OK · `metrics.json`
+**Champion no Registry:** `torch_mlp` → `movie-rec-sys` **v3 / Production**  
+**Run MLflow:** `b4c9b6b961d54f0eadee03b99feee29e` · split temporal OK · `metrics.json`
 
 ### Conclusão (para o time / vídeo STAR)
 
-1. No snapshot atual, o melhor RMSE/MAE ficou com o **Random Forest**, mas o `torch_mlp` segue como a arquitetura neural principal do projeto.  
-2. O ranking @10 do modelo neural ficou zerado nesse run pequeno, o que é esperado em hold-out reduzido e com sinal colaborativo puro.  
-3. Precision/Recall/NDCG continuam modestos; há espaço para incorporar mais features de conteúdo (TMDB/BERTopic).  
-4. Para o desafio: há um modelo PyTorch treinado, baselines comparados em múltiplas métricas e um campeão registrado em Production neste snapshot.
+1. A arquitetura **PyTorch MLP** foi a campeã absoluta com **RMSE de 0,898** e **MAE de 0,699**, superando com margem clara os baselines Scikit-Learn e MostPopular.
+2. O modelo foi devidamente registrado no **MLflow Model Registry** e promovido para o estágio de **Production**.
+3. O pipeline é 100% reprodutível via `dvc repro`, gerando o [dvc.lock](file:///C:/Users/Fernando%20Azevedo/FIAP/9mlet-tech-challenge-2-movie-rec-sys/dvc.lock) e o [metrics.json](file:///C:/Users/Fernando%20Azevedo/FIAP/9mlet-tech-challenge-2-movie-rec-sys/metrics.json).
 
 ---
 

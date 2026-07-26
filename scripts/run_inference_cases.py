@@ -49,9 +49,7 @@ def main() -> int:
             score = float(model(torch.tensor([[u, m]], dtype=torch.long)).squeeze())
         exp = case["expected"]
         delta = abs(score - exp["score"])
-        passed = (
-            exp["min"] <= score <= exp["max"] and delta <= exp["abs_tol"]
-        )
+        passed = exp["min"] <= score <= exp["max"] and delta <= exp["abs_tol"]
         ok = ok and passed
         status = "OK" if passed else "FAIL"
         print(
@@ -71,10 +69,7 @@ def main() -> int:
         passed = hi >= lo + margin
         ok = ok and passed
         status = "OK" if passed else "FAIL"
-        print(
-            f"[{status}] {case['id']}: {hi:.4f} vs {lo:.4f} "
-            f"(margem mín. {margin})"
-        )
+        print(f"[{status}] {case['id']}: {hi:.4f} vs {lo:.4f} (margem mín. {margin})")
 
     print("PASS" if ok else "FAIL")
     return 0 if ok else 1

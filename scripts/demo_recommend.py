@@ -61,8 +61,9 @@ def _make_synthetic_ratings(seed: int = 42) -> pd.DataFrame:
         n = rng.integers(5, 9)
         movies = rng.choice(list(MOVIES.keys()), size=n, replace=False)
         for movie in movies:
-            rating = float(rng.choice([1.0, 2.0, 3.0, 4.0, 5.0],
-                                      p=[0.05, 0.10, 0.20, 0.35, 0.30]))
+            rating = float(
+                rng.choice([1.0, 2.0, 3.0, 4.0, 5.0], p=[0.05, 0.10, 0.20, 0.35, 0.30])
+            )
             rows.append({"userId": user, "movieId": int(movie), "rating": rating})
     return pd.DataFrame(rows)
 
@@ -161,7 +162,9 @@ def parse_args() -> argparse.Namespace:
     """Parse CLI arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--model", type=str, default="torch_mlp",
+        "--model",
+        type=str,
+        default="torch_mlp",
         choices=["torch_mlp", "torch_embedding"],
     )
     parser.add_argument("--epochs", type=int, default=15)
