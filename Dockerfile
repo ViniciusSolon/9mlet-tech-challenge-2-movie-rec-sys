@@ -27,9 +27,10 @@ COPY src ./src
 COPY scripts ./scripts
 COPY configs ./configs
 COPY pyproject.toml uv.lock README.md ./
-COPY dvc.yaml params.yaml ./
-COPY .dvc ./.dvc
+COPY dvc.yaml params.yaml metrics.json ./
+COPY data ./data
+COPY models ./models
 
-RUN mkdir -p /app/dvc-storage /app/data/raw /app/data/processed /app/models
+EXPOSE 8000
 
-CMD ["python", "scripts/validate_env.py"]
+CMD ["uvicorn", "src.serving.app:app", "--host", "0.0.0.0", "--port", "8000"]

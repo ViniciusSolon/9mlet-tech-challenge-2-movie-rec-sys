@@ -48,7 +48,7 @@ A aplicação segue uma arquitetura em camadas bem definida, priorizando o desac
                               ▼
                  ┌──────────────────────────┐
                  │ Stage 5: evaluate        │ ──► Baselines + MLflow Registry
-                 └──────────────────────────┘
+                 └────────────┬─────────────┘
 ```
 
 ### 🧩 Padrões de Projeto (Design Patterns)
@@ -68,7 +68,7 @@ src/
 ├── models/            # Implementações em PyTorch, Scikit-Learn e Factory
 ├── evaluation/        # Métricas de ranking/rating, runner, champion selector e MLflow Registry
 ├── training/          # Loop de treino PyTorch e fixação de sementes globais (seeds)
-├── serving/           # Camada de inferência/endpoint HTTP
+├── serving/           # Aplicação FastAPI, Web Dashboard e endpoints de recomendação
 └── utils/             # Resolução dinâmica de caminhos e logging
 ```
 
@@ -158,9 +158,57 @@ uv run ruff check .
 
 ---
 
-## 🐳 5. Containerização e MLflow Tracking Server
+## 🌐 5. Aplicação Web & REST API Servidora (FastAPI)
 
-Toda a infraestrutura de treinamento e monitoramento pode ser inicializada via Docker Compose:
+A aplicação conta com uma camada de serviço desenvolvida em **FastAPI** (`src/serving/app.py`), combinando uma **interface gráfica interativa** e uma **API REST para inferência em tempo real**.
+
+### 🎨 Recursos Disponíveis
+
+1. **Dashboard Web Interativo (`GET /`):**
+   - Painel gráfico em Dark Mode para demonstrações.
+   - Permite selecionar o **Cliente (User ID)** e a quantidade de recomendações (**Top-K**).
+   - Realiza inferência ao vivo na Rede Neural PyTorch e exibe os cards dos produtos recomendados com nota prevista em estrelas (ex: `★ 4.85`), taxa de match (`96.8% Match`), gêneros e **latência da API em milissegundos** (`⚡ 8 ms`).
+
+2. **Documentação Swagger OpenAPI (`GET /docs`):**
+   - Interface padrão do FastAPI para navegação e teste interativo das rotas HTTP da API REST.
+
+3. **Endpoints Principais da API REST:**
+   - `GET /health` — Retorna o estado de saúde do servidor, dispositivo PyTorch (`cpu`/`cuda`), modelo ativo (`torch_mlp`) e estágio no MLflow (`production`).
+   - `GET /api/v1/recommend/{user_id}?top_k=10` — Gera os Top-K produtos recomendados para o cliente informado.
+   - `GET /api/v1/metrics` — Retorna as métricas oficiais registradas em `metrics.json`.
+
+### 🚀 Como Executar o Servidor da API Localmente
+
+Com o seu ambiente virtual ativado (`.venv`), execute:
+
+```bash
+python -m uvicorn src.serving.app:app --reload --port 8000
+```
+
+*Nota: Se estiver usando `uv` global instalado no sistema, você também pode usar `uv run uvicorn src.serving.app:app --reload --port 8000`.*
+
+Abra no seu navegador:
+- **Painel Visual Dashboard:** [http://localhost:8000](http://localhost:8000)
+- **Documentação Swagger API:** [http://localhost:8000/docs](http://localhost:8000/docs)
+
+### 🧪 Exemplos de Requisições cURL
+
+```bash
+# 1. Checar saúde do serviço e modelo ativo
+curl http://localhost:8000/health
+
+# 2. Obter recomendações Top-5 para o Cliente #42
+curl http://localhost:8000/api/v1/recommend/42?top_k=5
+
+# 3. Consultar métricas de avaliação do modelo
+curl http://localhost:8000/api/v1/metrics
+```
+
+---
+
+## 🐳 6. Containerização e MLflow Tracking Server
+
+Toda a infraestrutura de treinamento, serviço web e monitoramento pode ser inicializada via Docker Compose:
 
 ### 1. Subir os Serviços
 ```bash
@@ -177,17 +225,17 @@ Na interface do MLflow é possível inspecionar:
 
 ---
 
-## 📊 6. Governança MLOps & Model Card
+## 📊 7. Governança MLOps & Model Card
 
 Para garantir a transparência, rastreabilidade e uso responsável do modelo:
 - **Model Card:** Consulte [docs/MODEL_CARD.md](docs/MODEL_CARD.md) para documentação sobre escopo, limitações e análises éticas de viés de popularidade.
 
 ---
 
-## ☁️ 7. Deploy em Nuvem (Render)
+## ☁️ 8. Deploy em Nuvem (Render)
 
 A aplicação conta com suporte a deploy via container Docker:
-- **URL do Serviço:** `https://9mlet-tech-challenge-2-movie-rec-sys.onrender.com`
+- **URL do Serviço:** `https://ninemlet-tech-challenge-2-movie-rec-sys.onrender.com/`
 
 ---
 
