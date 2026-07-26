@@ -235,7 +235,7 @@ Para garantir a transparência, rastreabilidade e uso responsável do modelo:
 ## ☁️ 8. Deploy em Nuvem (Render)
 
 A aplicação conta com suporte a deploy via container Docker:
-- **URL do Serviço:** `https://9mlet-tech-challenge-2-movie-rec-sys.onrender.com`
+- **URL do Serviço:** `https://ninemlet-tech-challenge-2-movie-rec-sys.onrender.com/`
 
 ---
 
