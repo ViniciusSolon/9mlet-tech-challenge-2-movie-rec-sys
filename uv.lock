@@ -2369,6 +2369,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "dvc" },
+    { name = "fastapi" },
     { name = "httpx" },
     { name = "mlflow" },
     { name = "numpy" },
@@ -2380,6 +2381,7 @@ dependencies = [
     { name = "scikit-learn" },
     { name = "scipy" },
     { name = "torch" },
+    { name = "uvicorn" },
 ]
 
 [package.optional-dependencies]
@@ -2407,6 +2409,7 @@ requires-dist = [
     { name = "dvc", specifier = ">=3.56" },
     { name = "dvc", extras = ["gdrive"], marker = "extra == 'gdrive'", specifier = ">=3.56" },
     { name = "dvc", extras = ["s3"], marker = "extra == 's3'", specifier = ">=3.56" },
+    { name = "fastapi", specifier = ">=0.110" },
     { name = "httpx", specifier = ">=0.27" },
     { name = "mlflow", specifier = ">=2.18" },
     { name = "numpy", specifier = ">=1.26" },
@@ -2424,6 +2427,7 @@ requires-dist = [
     { name = "scipy", specifier = ">=1.13" },
     { name = "sentence-transformers", marker = "extra == 'topics'", specifier = ">=3.0" },
     { name = "torch", specifier = ">=2.4" },
+    { name = "uvicorn", specifier = ">=0.28" },
 ]
 provides-extras = ["s3", "gdrive", "topics", "dev"]
 
